@@ -3,11 +3,7 @@ package chain
 import (
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	libchain "github.com/btcsuite/btcwallet/chain"
 )
 
 // isCurrentDelta is the delta duration we'll use from the present time to
@@ -24,6 +20,21 @@ func BackEnds() []string {
 		"neutrino",
 	}
 }
+
+type (
+	Interface              = libchain.Interface
+	ClientConnected        = libchain.ClientConnected
+	BlockConnected         = libchain.BlockConnected
+	FilteredBlockConnected = libchain.FilteredBlockConnected
+	FilterBlocksRequest    = libchain.FilterBlocksRequest
+	FilterBlocksResponse   = libchain.FilterBlocksResponse
+	BlockDisconnected      = libchain.BlockDisconnected
+	RelevantTx             = libchain.RelevantTx
+	RescanProgress         = libchain.RescanProgress
+	RescanFinished         = libchain.RescanFinished
+)
+
+/*
 
 // Interface allows more than one backing blockchain source, such as a
 // btcd RPC chain server, or an SPV library, as long as we write a driver for
@@ -122,3 +133,4 @@ type (
 		Time   time.Time
 	}
 )
+*/

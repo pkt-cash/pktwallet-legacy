@@ -1,11 +1,8 @@
 package chain
 
 import (
+	libchain "github.com/btcsuite/btcwallet/chain"
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/waddrmgr"
 )
 
 // BlockFilterer is used to iteratively scan blocks for a set of addresses of
@@ -27,6 +24,14 @@ import (
 // address of interest by not storing the full derivation paths, and instead
 // opting to allow the caller to contextually infer the account (DefaultAccount)
 // and branch (Internal or External).
+type BlockFilterer = libchain.BlockFilterer
+
+func NewBlockFilterer(params *chaincfg.Params,
+	req *FilterBlocksRequest) *BlockFilterer {
+	return libchain.NewBlockFilterer(params, req)
+}
+
+/*
 type BlockFilterer struct {
 	// Params specifies the chain params of the current network.
 	Params *chaincfg.Params
@@ -215,3 +220,4 @@ func (bf *BlockFilterer) foundInternal(scopedIndex waddrmgr.ScopedIndex) {
 	}
 	bf.FoundInternal[scopedIndex.Scope][scopedIndex.Index] = struct{}{}
 }
+*/

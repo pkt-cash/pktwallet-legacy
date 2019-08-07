@@ -15,6 +15,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/btcsuite/btcutil"
+	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/btcsuite/btcwallet/chain"
+	"github.com/btcsuite/btcwallet/waddrmgr"
+	"github.com/btcsuite/btcwallet/walletdb"
+	"github.com/btcsuite/btcwallet/walletdb/migration"
+	"github.com/btcsuite/btcwallet/wtxmgr"
 	"github.com/btcsuite/btcd/blockchain"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/btcjson"
@@ -23,16 +31,9 @@ import (
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/hdkeychain"
-	"github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcwallet/waddrmgr"
+	mychain "github.com/pkt-cash/pktwallet/chain"
 	"github.com/btcsuite/btcwallet/wallet/txauthor"
 	"github.com/btcsuite/btcwallet/wallet/txrules"
-	"github.com/btcsuite/btcwallet/walletdb"
-	"github.com/btcsuite/btcwallet/walletdb/migration"
-	"github.com/btcsuite/btcwallet/wtxmgr"
-	"github.com/davecgh/go-spew/spew"
 )
 
 const (
@@ -176,7 +177,7 @@ func (w *Wallet) SynchronizeRPC(chainClient chain.Interface) {
 	// If the chain client is a NeutrinoClient instance, set a birthday so
 	// we don't download all the filters as we go.
 	switch cc := chainClient.(type) {
-	case *chain.NeutrinoClient:
+	case *mychain.NeutrinoClient:
 		cc.SetStartTime(w.Manager.Birthday())
 	case *chain.BitcoindClient:
 		cc.SetBirthday(w.Manager.Birthday())
@@ -2178,7 +2179,7 @@ func (w *Wallet) GetTransactions(startBlock, endBlock *BlockIdentifier, cancel <
 				if err != nil {
 					return nil, err
 				}
-			case *chain.NeutrinoClient:
+			case *mychain.NeutrinoClient:
 				var err error
 				start, err = client.GetBlockHeight(startBlock.hash)
 				if err != nil {
@@ -2197,7 +2198,7 @@ func (w *Wallet) GetTransactions(startBlock, endBlock *BlockIdentifier, cancel <
 			switch client := chainClient.(type) {
 			case *chain.RPCClient:
 				endResp = client.GetBlockVerboseTxAsync(endBlock.hash)
-			case *chain.NeutrinoClient:
+			case *mychain.NeutrinoClient:
 				var err error
 				end, err = client.GetBlockHeight(endBlock.hash)
 				if err != nil {
