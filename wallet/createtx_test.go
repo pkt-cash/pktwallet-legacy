@@ -11,15 +11,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil/hdkeychain"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/pkt-cash/pktd/txscript"
+	"github.com/pkt-cash/pktd/wire"
+	"github.com/pkt-cash/btcutil/hdkeychain"
+	"github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/libpktwallet/walletdb"
+	_ "github.com/pkt-cash/libpktwallet/walletdb/bdb"
+	"github.com/pkt-cash/libpktwallet/wtxmgr"
 )
 
 // TestTxToOutput checks that no new address is added to he database if we

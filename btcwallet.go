@@ -14,11 +14,11 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/btcsuite/btcwallet/walletdb"
-	"github.com/lightninglabs/neutrino"
+	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/neutrino"
 	"github.com/pkt-cash/pktwallet/chain"
 	"github.com/pkt-cash/pktwallet/rpc/legacyrpc"
-	"github.com/btcsuite/btcwallet/wallet"
+	"github.com/pkt-cash/pktwallet/wallet"
 )
 
 var (

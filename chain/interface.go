@@ -3,7 +3,7 @@ package chain
 import (
 	"time"
 
-	libchain "github.com/btcsuite/btcwallet/chain"
+	libchain "github.com/pkt-cash/libpktwallet/chain"
 )
 
 // isCurrentDelta is the delta duration we'll use from the present time to

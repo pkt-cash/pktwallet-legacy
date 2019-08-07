@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
+	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/pkt-cash/libpktwallet/walletdb"
+	_ "github.com/pkt-cash/libpktwallet/walletdb/bdb"
 )
 
 var (

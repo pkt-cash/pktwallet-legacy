@@ -1,8 +1,8 @@
 package chain
 
 import (
-	libchain "github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcd/chaincfg"
+	libchain "github.com/pkt-cash/libpktwallet/chain"
+	"github.com/pkt-cash/pktd/chaincfg"
 )
 
 // BlockFilterer is used to iteratively scan blocks for a set of addresses of

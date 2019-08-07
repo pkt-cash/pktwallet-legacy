@@ -10,11 +10,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/pkt-cash/btcutil"
+	"github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/libpktwallet/walletdb"
+	_ "github.com/pkt-cash/libpktwallet/walletdb/bdb"
+	"github.com/pkt-cash/libpktwallet/wtxmgr"
 	"github.com/jessevdk/go-flags"
 )
 

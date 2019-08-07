@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/btcsuite/btcwallet/internal/zero"
+	. "github.com/pkt-cash/libpktwallet/util/zero"
 )
 
 func makeOneBytes(n int) []byte {

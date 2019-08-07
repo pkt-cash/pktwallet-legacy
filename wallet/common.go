@@ -8,9 +8,9 @@ package wallet
 import (
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/pkt-cash/pktd/wire"
+	"github.com/pkt-cash/btcutil"
 )
 
 // Note: The following common types should never reference the Wallet type.
