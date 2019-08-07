@@ -100,6 +100,8 @@ github.com/pkt-cash/btcutil v0.0.0-20190806103914-865c5b327429/go.mod h1:aA8EuA9
 github.com/pkt-cash/libpktwallet v0.0.0-20190807123207-635f70f73f41/go.mod h1:EKWNqoCOmABq67iwXV4rs9MWXl8Q3Qq7zv3eY2Oj2u8=
 github.com/pkt-cash/libpktwallet v0.0.0-20190807131943-2e129638440e h1:4M5H/CuLJZDqUd8WeTTNiImUeZINszLYeNRaM2EZByk=
 github.com/pkt-cash/libpktwallet v0.0.0-20190807131943-2e129638440e/go.mod h1:EKWNqoCOmABq67iwXV4rs9MWXl8Q3Qq7zv3eY2Oj2u8=
+github.com/pkt-cash/libpktwallet v0.0.0-20190807175417-883e253dcc64 h1:93nVAUbaIp3qVjyaWjztIP+FNJVD6UrAoOBclNH9gyw=
+github.com/pkt-cash/libpktwallet v0.0.0-20190807175417-883e253dcc64/go.mod h1:EKWNqoCOmABq67iwXV4rs9MWXl8Q3Qq7zv3eY2Oj2u8=
 github.com/pkt-cash/neutrino v0.0.0-20190807123431-f5ebf6e8266d h1:/fNQkV+2emd+Mew+9GbrP1elB18bDbH1XWkxcMkkEL8=
 github.com/pkt-cash/neutrino v0.0.0-20190807123431-f5ebf6e8266d/go.mod h1:X3kLF/+tkWJVOPBVU6ZIP8stv2ybywTL7GKmfYFAaRk=
 github.com/pkt-cash/pktd v0.0.0-20190806120019-8e3b08404712 h1:hC7f+myJfJkFQn7KmlMyw9rHAiQ0uM3BVBtRGs6kDtE=

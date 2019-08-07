@@ -10,7 +10,7 @@ require (
 	github.com/jrick/logrotate v1.0.0
 	github.com/lightninglabs/gozmq v0.0.0-20190710231225-cea2a031735d
 	github.com/pkt-cash/btcutil v0.0.0-20190806103914-865c5b327429
-	github.com/pkt-cash/libpktwallet v0.0.0-20190807131943-2e129638440e
+	github.com/pkt-cash/libpktwallet v0.0.0-20190807175417-883e253dcc64
 	github.com/pkt-cash/neutrino v0.0.0-20190807123431-f5ebf6e8266d
 	github.com/pkt-cash/pktd v0.0.0-20190806120019-8e3b08404712
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80

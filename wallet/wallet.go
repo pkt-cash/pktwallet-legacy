@@ -269,6 +269,35 @@ func (w *Wallet) WaitForShutdown() {
 	w.wg.Wait()
 }
 
+// NetworkStewardVote gets the network steward which this account is voting for
+func (w *Wallet) NetworkStewardVote(accountNumber uint32,
+	scope waddrmgr.KeyScope) (vote *waddrmgr.NetworkStewardVote, err error) {
+	manager, err := w.Manager.FetchScopedKeyManager(scope)
+	if err != nil {
+		return
+	}
+	err = walletdb.View(w.db, func(tx walletdb.ReadTx) error {
+		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
+		var err error
+		vote, err = manager.NetworkStewardVote(addrmgrNs, accountNumber)
+		return err
+	})
+	return
+}
+
+// PutNetworkStewardVote gets the network steward which this account is voting for
+func (w *Wallet) PutNetworkStewardVote(accountNumber uint32,
+	scope waddrmgr.KeyScope, vote *waddrmgr.NetworkStewardVote) error {
+	manager, err := w.Manager.FetchScopedKeyManager(scope)
+	if err != nil {
+		return err
+	}
+	return walletdb.Update(w.db, func(tx walletdb.ReadWriteTx) error {
+		addrmgrNs := tx.ReadWriteBucket(waddrmgrNamespaceKey)
+		return manager.PutNetworkStewardVote(addrmgrNs, accountNumber, vote)
+	})
+}
+
 // SynchronizingToNetwork returns whether the wallet is currently synchronizing
 // with the Bitcoin network.
 func (w *Wallet) SynchronizingToNetwork() bool {

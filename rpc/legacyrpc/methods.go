@@ -15,6 +15,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkt-cash/btcutil"
+	"github.com/pkt-cash/libpktwallet/chain"
+	"github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/libpktwallet/wtxmgr"
 	"github.com/pkt-cash/pktd/btcec"
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/chaincfg"
@@ -22,12 +26,8 @@ import (
 	"github.com/pkt-cash/pktd/rpcclient"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/chain"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
 	"github.com/pkt-cash/pktwallet/wallet"
 	"github.com/pkt-cash/pktwallet/wallet/txrules"
-	"github.com/pkt-cash/libpktwallet/wtxmgr"
 )
 
 // confirmed checks whether a transaction at height txHeight has met minconf
@@ -125,8 +125,10 @@ var rpcHandlers = map[string]struct {
 	"setaccount":    {handler: unsupported, noHelp: true},
 
 	// Extensions to the reference client JSON-RPC API
-	"createnewaccount": {handler: createNewAccount},
-	"getbestblock":     {handler: getBestBlock},
+	"createnewaccount":      {handler: createNewAccount},
+	"getbestblock":          {handler: getBestBlock},
+	"setnetworkstewardvote": {handler: setNetworkStewardVote},
+	"getnetworkstewardvote": {handler: getNetworkStewardVote},
 	// This was an extension but the reference implementation added it as
 	// well, but with a different API (no account parameter).  It's listed
 	// here because it hasn't been update to use the reference
@@ -577,6 +579,61 @@ func getAccountAddress(icmd interface{}, w *wallet.Wallet) (interface{}, error) 
 	}
 
 	return addr.EncodeAddress(), err
+}
+
+func setNetworkStewardVote(icmd interface{}, w *wallet.Wallet) (interface{}, error) {
+	cmd := icmd.(*btcjson.SetNetworkStewardVoteCmd)
+	acctName := "default"
+	if cmd.Account != nil {
+		acctName = *cmd.Account
+	}
+	account, err := w.AccountNumber(waddrmgr.KeyScopeBIP0044, acctName)
+	if err != nil {
+		return nil, err
+	}
+	vote := waddrmgr.NetworkStewardVote{}
+	if cmd.VoteFor != nil {
+		vote.VoteFor, err = hex.DecodeString(*cmd.VoteFor)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if cmd.VoteAgainst != nil {
+		vote.VoteAgainst, err = hex.DecodeString(*cmd.VoteAgainst)
+		if err != nil {
+			return nil, err
+		}
+	}
+	result := &btcjson.SetNetworkStewardVoteResult{}
+	return result, w.PutNetworkStewardVote(account, waddrmgr.KeyScopeBIP0044, &vote)
+}
+
+func getNetworkStewardVote(icmd interface{}, w *wallet.Wallet) (interface{}, error) {
+	cmd := icmd.(*btcjson.GetNetworkStewardVoteCmd)
+	acctName := "default"
+	if cmd.Account != nil {
+		acctName = *cmd.Account
+	}
+	account, err := w.AccountNumber(waddrmgr.KeyScopeBIP0044, acctName)
+	if err != nil {
+		return nil, err
+	}
+
+	vote, err := w.NetworkStewardVote(account, waddrmgr.KeyScopeBIP0044)
+	if err != nil {
+		return nil, err
+	}
+	result := &btcjson.GetNetworkStewardVoteResult{}
+	if vote == nil {
+		return result, nil
+	}
+	if vote.VoteFor != nil {
+		result.VoteFor = hex.EncodeToString(vote.VoteFor)
+	}
+	if vote.VoteAgainst != nil {
+		result.VoteAgainst = hex.EncodeToString(vote.VoteAgainst)
+	}
+	return result, nil
 }
 
 // getUnconfirmedBalance handles a getunconfirmedbalance extension request
@@ -1350,15 +1407,19 @@ func lockUnspent(icmd interface{}, w *wallet.Wallet) (interface{}, error) {
 // strings to amounts.  This is used to create the outputs to include in newly
 // created transactions from a JSON object describing the output destinations
 // and amounts.
-func makeOutputs(pairs map[string]btcutil.Amount, chainParams *chaincfg.Params) ([]*wire.TxOut, error) {
+func makeOutputs(pairs map[string]btcutil.Amount, vote *waddrmgr.NetworkStewardVote,
+	chainParams *chaincfg.Params) ([]*wire.TxOut, error) {
 	outputs := make([]*wire.TxOut, 0, len(pairs))
+	if vote == nil {
+		vote = &waddrmgr.NetworkStewardVote{}
+	}
 	for addrStr, amt := range pairs {
 		addr, err := btcutil.DecodeAddress(addrStr, chainParams)
 		if err != nil {
 			return nil, fmt.Errorf("cannot decode address: %s", err)
 		}
 
-		pkScript, err := txscript.PayToAddrScript(addr)
+		pkScript, err := txscript.PayToAddrScriptWithVote(addr, vote.VoteFor, vote.VoteAgainst)
 		if err != nil {
 			return nil, fmt.Errorf("cannot create txout script: %s", err)
 		}
@@ -1374,7 +1435,12 @@ func makeOutputs(pairs map[string]btcutil.Amount, chainParams *chaincfg.Params) 
 func sendPairs(w *wallet.Wallet, amounts map[string]btcutil.Amount,
 	account uint32, minconf int32, feeSatPerKb btcutil.Amount) (string, error) {
 
-	outputs, err := makeOutputs(amounts, w.ChainParams())
+	vote, err := w.NetworkStewardVote(account, waddrmgr.KeyScopeBIP0044)
+	if err != nil {
+		return "", err
+	}
+
+	outputs, err := makeOutputs(amounts, vote, w.ChainParams())
 	if err != nil {
 		return "", err
 	}
