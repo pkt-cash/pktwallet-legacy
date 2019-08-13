@@ -71,7 +71,6 @@ for arg in "$@"; do
     elif test "x$arg" = "xrimports"; then
         rimports
         exit 0
-    else
     elif test "x$arg" = "xpktwallet"; then
         pktwallet
         exit 0
