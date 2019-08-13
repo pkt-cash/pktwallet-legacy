@@ -16,7 +16,7 @@ const isCurrentDelta = 2 * time.Hour
 func BackEnds() []string {
 	return []string{
 		"bitcoind",
-		"btcd",
+		"pktd",
 		"neutrino",
 	}
 }
@@ -37,7 +37,7 @@ type (
 /*
 
 // Interface allows more than one backing blockchain source, such as a
-// btcd RPC chain server, or an SPV library, as long as we write a driver for
+// pktd RPC chain server, or an SPV library, as long as we write a driver for
 // it.
 type Interface interface {
 	Start() error

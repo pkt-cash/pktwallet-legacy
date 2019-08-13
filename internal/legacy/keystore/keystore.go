@@ -1736,7 +1736,7 @@ func (af *addrFlags) ReadFrom(r io.Reader) (int64, error) {
 	af.partialSync = b[0]&(1<<7) != 0
 
 	// Currently (at least until watching-only key stores are implemented)
-	// btcwallet shall refuse to open any unencrypted addresses.  This
+	// pktwallet shall refuse to open any unencrypted addresses.  This
 	// check only makes sense if there is a private key to encrypt, which
 	// there may not be if the keypool was extended from just the last
 	// public key and no private keys were written.
@@ -1976,7 +1976,7 @@ func (it *BlockIterator) BlockStamp() BlockStamp {
 }
 
 // unusedSpace is a wrapper type to read or write one or more types
-// that btcwallet fits into an unused space left by Armory's key store file
+// that pktwallet fits into an unused space left by Armory's key store file
 // format.
 type unusedSpace struct {
 	nBytes int // number of unused bytes that armory left.

@@ -1563,7 +1563,7 @@ func (w *Wallet) CalculateAccountBalances(account uint32, confirms int32) (Balan
 // CurrentAddress gets the most recently requested Bitcoin payment address
 // from a wallet for a particular key-chain scope.  If the address has already
 // been used (there is at least one transaction spending to it in the
-// blockchain or btcd mempool), the next chained address is returned.
+// blockchain or pktd mempool), the next chained address is returned.
 func (w *Wallet) CurrentAddress(account uint32, scope waddrmgr.KeyScope) (btcutil.Address, error) {
 	chainClient, err := w.requireChainClient()
 	if err != nil {
@@ -3419,7 +3419,7 @@ func (w *Wallet) publishTransaction(tx *wire.MsgTx) (*chainhash.Hash, error) {
 	// If the transaction is already in the mempool, we can just return now.
 	//
 	// This error is returned when broadcasting/sending a transaction to a
-	// btcd node that already has it in their mempool.
+	// pktd node that already has it in their mempool.
 	case strings.Contains(
 		strings.ToLower(err.Error()), "already have transaction",
 	):
@@ -3438,12 +3438,12 @@ func (w *Wallet) publishTransaction(tx *wire.MsgTx) (*chainhash.Hash, error) {
 	// in a sense successful.
 	//
 	// This error is returned when sending a transaction that has already
-	// confirmed to a btcd/bitcoind node over RPC.
+	// confirmed to a pktd/bitcoind node over RPC.
 	case rpcTxConfirmed:
 		fallthrough
 
 	// This error is returned when broadcasting a transaction that has
-	// already confirmed to a btcd node over the P2P network.
+	// already confirmed to a pktd node over the P2P network.
 	case strings.Contains(
 		strings.ToLower(err.Error()), "transaction already exists",
 	):
@@ -3499,7 +3499,7 @@ func (w *Wallet) ChainParams() *chaincfg.Params {
 }
 
 // Database returns the underlying walletdb database. This method is provided
-// in order to allow applications wrapping btcwallet to store app-specific data
+// in order to allow applications wrapping pktwallet to store app-specific data
 // with the wallet's database.
 func (w *Wallet) Database() walletdb.DB {
 	return w.db
