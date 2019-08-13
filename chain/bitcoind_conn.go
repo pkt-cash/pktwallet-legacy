@@ -9,11 +9,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/lightninglabs/gozmq"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/rpcclient"
 	"github.com/pkt-cash/pktd/wire"
-	"github.com/lightninglabs/gozmq"
 )
 
 // BitcoindConn represents a persistent client connection to a bitcoind node
@@ -330,6 +330,10 @@ func (c *BitcoindConn) getCurrentNet() (wire.BitcoinNet, error) {
 		return chaincfg.RegressionNetParams.Net, nil
 	case *chaincfg.MainNetParams.GenesisHash:
 		return chaincfg.MainNetParams.Net, nil
+	case *chaincfg.PktTestNetParams.GenesisHash:
+		return chaincfg.PktTestNetParams.Net, nil
+	case *chaincfg.PktMainNetParams.GenesisHash:
+		return chaincfg.PktMainNetParams.Net, nil
 	default:
 		return 0, fmt.Errorf("unknown network with genesis hash %v", hash)
 	}

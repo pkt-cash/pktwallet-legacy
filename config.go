@@ -15,13 +15,13 @@ import (
 	"strings"
 	"time"
 
+	flags "github.com/jessevdk/go-flags"
 	"github.com/pkt-cash/btcutil"
+	"github.com/pkt-cash/libpktwallet/netparams"
 	"github.com/pkt-cash/libpktwallet/util/cfgutil"
 	"github.com/pkt-cash/libpktwallet/util/legacy/keystore"
-	"github.com/pkt-cash/libpktwallet/netparams"
-	"github.com/pkt-cash/pktwallet/wallet"
-	flags "github.com/jessevdk/go-flags"
 	"github.com/pkt-cash/neutrino"
+	"github.com/pkt-cash/pktwallet/wallet"
 )
 
 const (
@@ -53,6 +53,9 @@ type config struct {
 	CreateTemp    bool                    `long:"createtemp" description:"Create a temporary simulation wallet (pass=password) in the data directory indicated; must call with --datadir"`
 	AppDataDir    *cfgutil.ExplicitString `short:"A" long:"appdata" description:"Application data directory for wallet config, databases and logs"`
 	TestNet3      bool                    `long:"testnet" description:"Use the test Bitcoin network (version 3) (default mainnet)"`
+	PktTestNet    bool                    `long:"pkttest" description:"Use the test pkt.cash test network"`
+	BtcMainNet    bool                    `long:"btc" description:"Use the test bitcoin main network"`
+	PktMainNet    bool                    `long:"pkt" description:"Use the test pkt.cash main network"`
 	SimNet        bool                    `long:"simnet" description:"Use the simulation test network (default mainnet)"`
 	NoInitialLoad bool                    `long:"noinitialload" description:"Defer wallet creation/opening on startup and enable loading wallets over RPC"`
 	DebugLevel    string                  `short:"d" long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
@@ -363,6 +366,18 @@ func loadConfig() (*config, []string, error) {
 	}
 	if cfg.SimNet {
 		activeNet = &netparams.SimNetParams
+		numNets++
+	}
+	if cfg.PktTestNet {
+		activeNet = &netparams.PktTestNetParams
+		numNets++
+	}
+	if cfg.PktMainNet {
+		activeNet = &netparams.PktMainNetParams
+		numNets++
+	}
+	if cfg.BtcMainNet {
+		activeNet = &netparams.MainNetParams
 		numNets++
 	}
 	if numNets > 1 {

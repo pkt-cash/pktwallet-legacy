@@ -22,6 +22,8 @@ usage() {
     echo "  COMMANDS"
     echo "      imports             # Update imported files"
     echo "      rimports            # Revert imported files back to btcd"
+    echo "      pktwallet           # Change all occurrences of 'btcwallet' to 'pktwallet'"
+    echo "      rpktwallet          # Change occurrences of 'pktwallet' back to 'btcwallet'"
 }
 
 RUN=$SH
@@ -49,6 +51,16 @@ rimports() {
         echo $SED -i -e \'s@"github.com/pkt-cash/neutrino@"github.com/lightninglabs/neutrino@g\' $x;
     done | $RUN
 }
+pktwallet() {
+    $FIND ./ -name '*.go' | while read x; do
+        echo $SED -i -e \'s@btcwallet@pktwallet@g\' $x;
+    done | $RUN
+}
+rpktwallet() {
+    $FIND ./ -name '*.go' | while read x; do
+        echo $SED -i -e \'s@pktwallet@btcwallet@g\' $x;
+    done | $RUN
+}
 
 for arg in "$@"; do
     if test "x$arg" = "x--dryrun"; then
@@ -58,6 +70,13 @@ for arg in "$@"; do
         exit 0
     elif test "x$arg" = "xrimports"; then
         rimports
+        exit 0
+    else
+    elif test "x$arg" = "xpktwallet"; then
+        pktwallet
+        exit 0
+    elif test "x$arg" = "xrpktwallet"; then
+        rpktwallet
         exit 0
     else
         usage

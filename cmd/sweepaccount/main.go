@@ -12,17 +12,17 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 
+	"github.com/jessevdk/go-flags"
+	"github.com/pkt-cash/btcutil"
+	"github.com/pkt-cash/libpktwallet/netparams"
+	"github.com/pkt-cash/libpktwallet/util/cfgutil"
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/rpcclient"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/util/cfgutil"
-	"github.com/pkt-cash/libpktwallet/netparams"
 	"github.com/pkt-cash/pktwallet/wallet/txauthor"
 	"github.com/pkt-cash/pktwallet/wallet/txrules"
-	"github.com/jessevdk/go-flags"
 )
 
 var (
@@ -43,6 +43,9 @@ func errContext(err error, context string) error {
 // Flags.
 var opts = struct {
 	TestNet3              bool                `long:"testnet" description:"Use the test bitcoin network (version 3)"`
+	PktTest               bool                `long:"pkttest" description:"Use the pkt.cash test network"`
+	PktMain               bool                `long:"pkt" description:"Use the pkt.cash main network"`
+	BtcMain               bool                `long:"btc" description:"Use the bitcoin network"`
 	SimNet                bool                `long:"simnet" description:"Use the simulation bitcoin network"`
 	RPCConnect            string              `short:"c" long:"connect" description:"Hostname[:port] of wallet RPC server"`
 	RPCUsername           string              `short:"u" long:"rpcuser" description:"Wallet RPC username"`
@@ -53,6 +56,9 @@ var opts = struct {
 	RequiredConfirmations int64               `long:"minconf" description:"Required confirmations to include an output"`
 }{
 	TestNet3:              false,
+	PktTest:               false,
+	PktMain:               false,
+	BtcMain:               false,
 	SimNet:                false,
 	RPCConnect:            "localhost",
 	RPCUsername:           "",
@@ -83,11 +89,15 @@ func init() {
 	if opts.TestNet3 && opts.SimNet {
 		fatalf("Multiple bitcoin networks may not be used simultaneously")
 	}
-	var activeNet = &netparams.MainNetParams
+	var activeNet = &netparams.PktMainNetParams
 	if opts.TestNet3 {
 		activeNet = &netparams.TestNet3Params
 	} else if opts.SimNet {
 		activeNet = &netparams.SimNetParams
+	} else if opts.PktTest {
+		activeNet = &netparams.PktTestNetParams
+	} else if opts.BtcMain {
+		activeNet = &netparams.MainNetParams
 	}
 
 	if opts.RPCConnect == "" {
