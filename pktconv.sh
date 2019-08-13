@@ -22,8 +22,8 @@ usage() {
     echo "  COMMANDS"
     echo "      imports             # Update imported files"
     echo "      rimports            # Revert imported files back to btcd"
-    echo "      pktwallet           # Change all occurrences of 'btcwallet' to 'pktwallet'"
-    echo "      rpktwallet          # Change occurrences of 'pktwallet' back to 'btcwallet'"
+    echo "      btcd                # Change all occurrences of 'btcwallet' to 'pktwallet' and 'btcd' to 'pktd'"
+    echo "      rbtcd               # Change occurrences of 'pktwallet' back to 'btcwallet' and 'pktd' to 'btcd'"
 }
 
 RUN=$SH
@@ -54,10 +54,12 @@ rimports() {
 pktwallet() {
     $FIND ./ -name '*.go' | while read x; do
         echo $SED -i -e \'s@btcwallet@pktwallet@g\' $x;
+        echo $SED -i -e \'s@btcd@pktd@g\' $x;
     done | $RUN
 }
 rpktwallet() {
     $FIND ./ -name '*.go' | while read x; do
+        echo $SED -i -e \'s@pktd@btcd@g\' $x;
         echo $SED -i -e \'s@pktwallet@btcwallet@g\' $x;
     done | $RUN
 }
@@ -71,10 +73,10 @@ for arg in "$@"; do
     elif test "x$arg" = "xrimports"; then
         rimports
         exit 0
-    elif test "x$arg" = "xpktwallet"; then
+    elif test "x$arg" = "xbtcd"; then
         pktwallet
         exit 0
-    elif test "x$arg" = "xrpktwallet"; then
+    elif test "x$arg" = "xrbtcd"; then
         rpktwallet
         exit 0
     else
