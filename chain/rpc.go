@@ -6,19 +6,20 @@ package chain
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcjson"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/rpcclient"
-	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/btcutil/gcs"
 	"github.com/pkt-cash/btcutil/gcs/builder"
 	"github.com/pkt-cash/libpktwallet/waddrmgr"
 	"github.com/pkt-cash/libpktwallet/wtxmgr"
+	"github.com/pkt-cash/pktd/btcjson"
+	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/pkt-cash/pktd/rpcclient"
+	"github.com/pkt-cash/pktd/wire"
 )
 
 // RPCClient represents a persistent client connection to a bitcoin RPC server
@@ -111,7 +112,7 @@ func (c *RPCClient) Start() error {
 	}
 	if net != c.chainParams.Net {
 		c.Disconnect()
-		return errors.New("mismatched networks")
+		return fmt.Errorf("mismatched networks want [%v] got [%v]", c.chainParams.Net.String(), net.String())
 	}
 
 	c.quitMtx.Lock()
