@@ -21,6 +21,8 @@ import (
 	"github.com/pkt-cash/libpktwallet/util/cfgutil"
 	"github.com/pkt-cash/libpktwallet/util/legacy/keystore"
 	"github.com/pkt-cash/neutrino"
+	"github.com/pkt-cash/pktd/blockchain"
+	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
 	"github.com/pkt-cash/pktwallet/wallet"
 )
 
@@ -386,6 +388,17 @@ func loadConfig() (*config, []string, error) {
 		err := fmt.Errorf(str, "loadConfig")
 		fmt.Fprintln(os.Stderr, err)
 		parser.WriteHelp(os.Stderr)
+		return nil, nil, err
+	}
+
+	// TODO(cjd): this is trash, but CompactToBig is a util function and it shouldn't
+	// be in blockchain, but it is, and trying to call it from cfg is a dependency
+	// loop. And duplicating the powlimit twice in the config is also trash...
+	activeNet.PowLimit = blockchain.CompactToBig(activeNet.PowLimitBits)
+
+	if ok := globalcfg.SelectConfig(activeNet.GlobalConf); !ok {
+		err = fmt.Errorf("globalcfg.SelectConfig() called twice")
+		fmt.Fprintln(os.Stderr, err)
 		return nil, nil, err
 	}
 
