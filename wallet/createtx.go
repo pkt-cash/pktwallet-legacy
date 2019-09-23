@@ -106,7 +106,7 @@ func (s secretSource) GetScript(addr btcutil.Address) ([]byte, error) {
 // the database. A tx created with this set to true will intentionally have no
 // input scripts added and SHOULD NOT be broadcasted.
 func (w *Wallet) txToOutputs(outputs []*wire.TxOut, account uint32,
-	minconf int32, feeSatPerKb btcutil.Amount, dryRun bool) (
+	minconf int32, feeSatPerKb btcutil.Amount, dryRun bool, changeAddress *string) (
 	tx *txauthor.AuthoredTx, err error) {
 
 	chainClient, err := w.requireChainClient()
@@ -140,7 +140,9 @@ func (w *Wallet) txToOutputs(outputs []*wire.TxOut, account uint32,
 		// created from account 0.
 		var changeAddr btcutil.Address
 		var err error
-		if account == waddrmgr.ImportedAddrAccount {
+		if changeAddress != nil {
+			changeAddr, err = btcutil.DecodeAddress(*changeAddress, w.ChainParams())
+		} else if account == waddrmgr.ImportedAddrAccount {
 			changeAddr, err = w.newChangeAddress(addrmgrNs, 0)
 		} else {
 			changeAddr, err = w.newChangeAddress(addrmgrNs, account)

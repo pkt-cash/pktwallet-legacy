@@ -11,15 +11,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/btcutil/hdkeychain"
 	"github.com/pkt-cash/libpktwallet/waddrmgr"
 	"github.com/pkt-cash/libpktwallet/walletdb"
 	_ "github.com/pkt-cash/libpktwallet/walletdb/bdb"
 	"github.com/pkt-cash/libpktwallet/wtxmgr"
+	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/pkt-cash/pktd/txscript"
+	"github.com/pkt-cash/pktd/wire"
 )
 
 // TestTxToOutput checks that no new address is added to he database if we
@@ -123,7 +123,7 @@ func TestTxToOutputsDryRun(t *testing.T) {
 
 	// First do a few dry-runs, making sure the number of addresses in the
 	// database us not inflated.
-	dryRunTx, err := w.txToOutputs(txOuts, 0, 1, 1000, true)
+	dryRunTx, err := w.txToOutputs(txOuts, 0, 1, 1000, true, nil)
 	if err != nil {
 		t.Fatalf("unable to author tx: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestTxToOutputsDryRun(t *testing.T) {
 		t.Fatalf("expected 1 address, found %v", len(addresses))
 	}
 
-	dryRunTx2, err := w.txToOutputs(txOuts, 0, 1, 1000, true)
+	dryRunTx2, err := w.txToOutputs(txOuts, 0, 1, 1000, true, nil)
 	if err != nil {
 		t.Fatalf("unable to author tx: %v", err)
 	}
@@ -171,7 +171,7 @@ func TestTxToOutputsDryRun(t *testing.T) {
 
 	// Now we do a proper, non-dry run. This should add a change address
 	// to the database.
-	tx, err := w.txToOutputs(txOuts, 0, 1, 1000, false)
+	tx, err := w.txToOutputs(txOuts, 0, 1, 1000, false, nil)
 	if err != nil {
 		t.Fatalf("unable to author tx: %v", err)
 	}

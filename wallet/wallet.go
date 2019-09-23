@@ -1160,12 +1160,13 @@ func logFilterBlocksResp(block wtxmgr.BlockMeta,
 
 type (
 	createTxRequest struct {
-		account     uint32
-		outputs     []*wire.TxOut
-		minconf     int32
-		feeSatPerKB btcutil.Amount
-		dryRun      bool
-		resp        chan createTxResponse
+		account       uint32
+		outputs       []*wire.TxOut
+		minconf       int32
+		feeSatPerKB   btcutil.Amount
+		dryRun        bool
+		changeAddress *string
+		resp          chan createTxResponse
 	}
 	createTxResponse struct {
 		tx  *txauthor.AuthoredTx
@@ -1195,7 +1196,7 @@ out:
 				continue
 			}
 			tx, err := w.txToOutputs(txr.outputs, txr.account,
-				txr.minconf, txr.feeSatPerKB, txr.dryRun)
+				txr.minconf, txr.feeSatPerKB, txr.dryRun, txr.changeAddress)
 			heldUnlock.release()
 			txr.resp <- createTxResponse{tx, err}
 		case <-quit:
@@ -1215,16 +1216,17 @@ out:
 // NOTE: The dryRun argument can be set true to create a tx that doesn't alter
 // the database. A tx created with this set to true SHOULD NOT be broadcasted.
 func (w *Wallet) CreateSimpleTx(account uint32, outputs []*wire.TxOut,
-	minconf int32, satPerKb btcutil.Amount, dryRun bool) (
+	minconf int32, satPerKb btcutil.Amount, dryRun bool, changeAddress *string) (
 	*txauthor.AuthoredTx, error) {
 
 	req := createTxRequest{
-		account:     account,
-		outputs:     outputs,
-		minconf:     minconf,
-		feeSatPerKB: satPerKb,
-		dryRun:      dryRun,
-		resp:        make(chan createTxResponse),
+		account:       account,
+		outputs:       outputs,
+		minconf:       minconf,
+		feeSatPerKB:   satPerKb,
+		dryRun:        dryRun,
+		changeAddress: changeAddress,
+		resp:          make(chan createTxResponse),
 	}
 	w.createTxRequests <- req
 	resp := <-req.resp
@@ -2440,6 +2442,7 @@ func (w *Wallet) AccountBalances(scope waddrmgr.KeyScope,
 			}
 			outputAcct, err := manager.AddrAccount(addrmgrNs, addrs[0])
 			if err != nil {
+				log.Infof("No known account for address [%s]", addrs[0].String())
 				continue
 			}
 			switch {
@@ -3150,7 +3153,8 @@ func (w *Wallet) TotalReceivedForAddr(addr btcutil.Address, minConf int32) (btcu
 // SendOutputs creates and sends payment transactions. It returns the
 // transaction upon success.
 func (w *Wallet) SendOutputs(outputs []*wire.TxOut, account uint32,
-	minconf int32, satPerKb btcutil.Amount) (*wire.MsgTx, error) {
+	minconf int32, satPerKb btcutil.Amount, dryRun bool,
+	changeAddress *string) (*txauthor.AuthoredTx, error) {
 
 	// Ensure the outputs to be created adhere to the network's consensus
 	// rules.
@@ -3168,10 +3172,13 @@ func (w *Wallet) SendOutputs(outputs []*wire.TxOut, account uint32,
 	// continue to re-broadcast the transaction upon restarts until it has
 	// been confirmed.
 	createdTx, err := w.CreateSimpleTx(
-		account, outputs, minconf, satPerKb, false,
+		account, outputs, minconf, satPerKb, dryRun, changeAddress,
 	)
 	if err != nil {
 		return nil, err
+	}
+	if dryRun {
+		return createdTx, nil
 	}
 
 	txHash, err := w.reliablyPublishTransaction(createdTx.Tx)
@@ -3184,7 +3191,7 @@ func (w *Wallet) SendOutputs(outputs []*wire.TxOut, account uint32,
 		return nil, errors.New("tx hash mismatch")
 	}
 
-	return createdTx.Tx, nil
+	return createdTx, nil
 }
 
 // SignatureError records the underlying error when validating a transaction

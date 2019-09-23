@@ -8,10 +8,10 @@ package wallet
 import (
 	"errors"
 
-	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/libpktwallet/waddrmgr"
 	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktd/txscript"
 )
 
 // MakeMultiSigScript creates a multi-signature script that can be redeemed with
@@ -108,6 +108,48 @@ func (w *Wallet) ImportP2SHRedeemScript(script []byte) (*btcutil.AddressScriptHa
 		}
 
 		p2shAddr = addrInfo.Address().(*btcutil.AddressScriptHash)
+		return nil
+	})
+	return p2shAddr, err
+}
+
+// ImportP2WSHRedeemScript adds a P2WSH redeem script to the wallet.
+func (w *Wallet) ImportP2WSHRedeemScript(script []byte) (*btcutil.AddressWitnessScriptHash, error) {
+	var p2shAddr *btcutil.AddressWitnessScriptHash
+	err := walletdb.Update(w.db, func(tx walletdb.ReadWriteTx) error {
+		addrmgrNs := tx.ReadWriteBucket(waddrmgrNamespaceKey)
+
+		// TODO(oga) blockstamp current block?
+		bs := &waddrmgr.BlockStamp{
+			Hash:   *w.ChainParams().GenesisHash,
+			Height: 0,
+		}
+
+		// As this is a regular P2SH script, we'll import this into the
+		// BIP0044 scope.
+		bip44Mgr, err := w.Manager.FetchScopedKeyManager(
+			waddrmgr.KeyScopeBIP0084,
+		)
+		if err != nil {
+			return err
+		}
+
+		addrInfo, err := bip44Mgr.ImportWitnessScript(addrmgrNs, script, bs)
+		if err != nil {
+			// Don't care if it's already there, but still have to
+			// set the p2shAddr since the address manager didn't
+			// return anything useful.
+			if waddrmgr.IsError(err, waddrmgr.ErrDuplicateAddress) {
+				// This function will never error as it always
+				// hashes the script to the correct length.
+				p2shAddr, _ = btcutil.NewAddressWitnessScriptHash(script,
+					w.chainParams)
+				return nil
+			}
+			return err
+		}
+
+		p2shAddr = addrInfo.Address().(*btcutil.AddressWitnessScriptHash)
 		return nil
 	})
 	return p2shAddr, err

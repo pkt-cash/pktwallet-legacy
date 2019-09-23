@@ -129,6 +129,8 @@ var rpcHandlers = map[string]struct {
 	"getbestblock":          {handler: getBestBlock},
 	"setnetworkstewardvote": {handler: setNetworkStewardVote},
 	"getnetworkstewardvote": {handler: getNetworkStewardVote},
+	"addp2shscript":         {handler: addP2shScript},
+	"createtransaction":     {handlerWithChain: createTransaction},
 	// This was an extension but the reference implementation added it as
 	// well, but with a different API (no account parameter).  It's listed
 	// here because it hasn't been update to use the reference
@@ -320,6 +322,29 @@ func makeMultiSigScript(w *wallet.Wallet, keys []string, nRequired int) ([]byte,
 	}
 
 	return txscript.MultiSigScript(keysesPrecious, nRequired)
+}
+
+func addP2shScript(icmd interface{}, w *wallet.Wallet) (interface{}, error) {
+	cmd := icmd.(*btcjson.AddP2shScriptCmd)
+	if cmd.Account != nil && *cmd.Account != waddrmgr.ImportedAddrAccountName {
+		return nil, &ErrNotImportedAccount
+	}
+	script, err := hex.DecodeString(cmd.Script)
+	if err != nil {
+		return nil, err
+	}
+	if cmd.Segwit {
+		p2shAddr, err := w.ImportP2WSHRedeemScript(script)
+		if err != nil {
+			return nil, err
+		}
+		return p2shAddr.EncodeAddress(), nil
+	}
+	p2shAddr, err := w.ImportP2SHRedeemScript(script)
+	if err != nil {
+		return nil, err
+	}
+	return p2shAddr.EncodeAddress(), nil
 }
 
 // addMultiSigAddress handles an addmultisigaddress request by adding a
@@ -1444,7 +1469,7 @@ func sendPairs(w *wallet.Wallet, amounts map[string]btcutil.Amount,
 	if err != nil {
 		return "", err
 	}
-	tx, err := w.SendOutputs(outputs, account, minconf, feeSatPerKb)
+	tx, err := w.SendOutputs(outputs, account, minconf, feeSatPerKb, false, nil)
 	if err != nil {
 		if err == txrules.ErrAmountNegative {
 			return "", ErrNeedPositiveAmount
@@ -1463,7 +1488,7 @@ func sendPairs(w *wallet.Wallet, amounts map[string]btcutil.Amount,
 		}
 	}
 
-	txHashStr := tx.TxHash().String()
+	txHashStr := tx.Tx.TxHash().String()
 	log.Infof("Successfully sent transaction %v", txHashStr)
 	return txHashStr, nil
 }
@@ -1515,6 +1540,76 @@ func sendFrom(icmd interface{}, w *wallet.Wallet, chainClient *chain.RPCClient) 
 
 	return sendPairs(w, pairs, account, minConf,
 		txrules.DefaultRelayFeePerKb)
+}
+
+func createTransaction(icmd interface{}, w *wallet.Wallet, chainClient *chain.RPCClient) (interface{}, error) {
+	cmd := icmd.(*btcjson.CreateTransactionCmd)
+	feeSatPerKb := txrules.DefaultRelayFeePerKb
+
+	account, err := w.AccountNumber(
+		waddrmgr.KeyScopeBIP0044, cmd.FromAccount,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check that signed integer parameters are positive.
+	if cmd.Amount < 0 {
+		return nil, ErrNeedPositiveAmount
+	}
+	minconf := int32(*cmd.MinConf)
+	if minconf < 0 {
+		return nil, ErrNeedPositiveMinconf
+	}
+	// Create map of address and amount pairs.
+	amt, err := btcutil.NewAmount(cmd.Amount)
+	if err != nil {
+		return nil, err
+	}
+	amounts := map[string]btcutil.Amount{
+		cmd.ToAddress: amt,
+	}
+
+	var vote *waddrmgr.NetworkStewardVote
+	if cmd.Vote != nil && *cmd.Vote {
+		vote, err = w.NetworkStewardVote(account, waddrmgr.KeyScopeBIP0044)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	outputs, err := makeOutputs(amounts, vote, w.ChainParams())
+	if err != nil {
+		return "", err
+	}
+	tx, err := w.SendOutputs(outputs, account, minconf, feeSatPerKb, true, cmd.ChangeAddress)
+	if err != nil {
+		if err == txrules.ErrAmountNegative {
+			return "", ErrNeedPositiveAmount
+		}
+		if waddrmgr.IsError(err, waddrmgr.ErrLocked) {
+			return "", &ErrWalletUnlockNeeded
+		}
+		switch err.(type) {
+		case btcjson.RPCError:
+			return "", err
+		}
+
+		return "", &btcjson.RPCError{
+			Code:    btcjson.ErrRPCInternal.Code,
+			Message: err.Error(),
+		}
+	}
+
+	if cmd.ElectrumFormat != nil && *cmd.ElectrumFormat {
+		b := new(bytes.Buffer)
+		tx.ElectrumSerialize(b)
+		return hex.EncodeToString(b.Bytes()), nil
+	}
+
+	b := bytes.NewBuffer(make([]byte, 0, tx.Tx.SerializeSize()))
+	tx.Tx.Serialize(b)
+	return hex.EncodeToString(b.Bytes()), nil
 }
 
 // sendMany handles a sendmany RPC request by creating a new transaction

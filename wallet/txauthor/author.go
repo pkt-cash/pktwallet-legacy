@@ -6,12 +6,14 @@
 package txauthor
 
 import (
+	"encoding/binary"
 	"errors"
+	"io"
 
+	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/pktwallet/wallet/txrules"
 
 	h "github.com/pkt-cash/libpktwallet/util/helpers"
@@ -56,6 +58,101 @@ type AuthoredTx struct {
 
 // ChangeSource provides P2PKH change output scripts for transaction creation.
 type ChangeSource func() ([]byte, error)
+
+func write32(w io.Writer, x uint32) error {
+	var b [4]byte
+	binary.LittleEndian.PutUint32(b[:], x)
+	_, err := w.Write(b[:])
+	return err
+}
+
+func write64(w io.Writer, x uint64) error {
+	var b [8]byte
+	binary.LittleEndian.PutUint64(b[:], x)
+	_, err := w.Write(b[:])
+	return err
+}
+
+func (tx *AuthoredTx) ElectrumSerialize(w io.Writer) error {
+	// magic
+	if _, err := w.Write([]byte("\x00EPTF\xff\x00")); err != nil {
+		return err
+	}
+
+	// tx version
+	if err := write32(w, uint32(tx.Tx.Version)); err != nil {
+		return err
+	}
+
+	// segwit (always yes)
+	if _, err := w.Write([]byte("\x00\x01")); err != nil {
+		return err
+	}
+
+	// input count
+	if err := wire.WriteVarInt(w, 0, uint64(len(tx.Tx.TxIn))); err != nil {
+		return err
+	}
+
+	for i, ti := range tx.Tx.TxIn {
+		if _, err := w.Write(ti.PreviousOutPoint.Hash[:]); err != nil {
+			return err
+		}
+		if err := write32(w, uint32(ti.PreviousOutPoint.Index)); err != nil {
+			return err
+		}
+
+		// 26ff0023fd<scr>
+		scr := make([]byte, len(tx.PrevScripts[i])+1)
+		scr[0] = txscript.OP_PUBKEYHASH
+		copy(scr[1:], tx.PrevScripts[i])
+
+		scr, err := txscript.NewScriptBuilder().
+			AddOp(txscript.OP_INVALIDOPCODE).AddOp(txscript.OP_0).AddData(scr).Script()
+		if err != nil {
+			return err
+		}
+		if err := wire.WriteVarBytes(w, 0, scr); err != nil {
+			return err
+		}
+
+		if err := write32(w, ti.Sequence); err != nil {
+			return err
+		}
+	}
+
+	// output count
+	if err := wire.WriteVarInt(w, 0, uint64(len(tx.Tx.TxOut))); err != nil {
+		return err
+	}
+
+	for _, to := range tx.Tx.TxOut {
+		if err := wire.WriteTxOut(w, 0, 0, to); err != nil {
+			return err
+		}
+	}
+
+	for _, amt := range tx.PrevInputValues {
+		// trick segwit length which informs electrum that it's special data
+		if err := wire.WriteVarInt(w, 0, uint64(0xffffffff)); err != nil {
+			return err
+		}
+		// hint for electrum about the amount of the input
+		if err := write64(w, uint64(amt)); err != nil {
+			return err
+		}
+		// 2 byte version, 1 byte actual segwit length (zero)
+		if _, err := w.Write([]byte("\x00\x00\x00")); err != nil {
+			return err
+		}
+	}
+
+	if err := write32(w, tx.Tx.LockTime); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // NewUnsignedTransaction creates an unsigned transaction paying to one or more
 // non-change outputs.  An appropriate transaction fee is included based on the
