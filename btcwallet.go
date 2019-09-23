@@ -16,7 +16,8 @@ import (
 
 	"github.com/pkt-cash/libpktwallet/walletdb"
 	"github.com/pkt-cash/neutrino"
-	"github.com/pkt-cash/pktwallet/chain"
+	mychain "github.com/pkt-cash/pktwallet/chain"
+	"github.com/pkt-cash/libpktwallet/chain"
 	"github.com/pkt-cash/pktwallet/rpc/legacyrpc"
 	"github.com/pkt-cash/pktwallet/wallet"
 )
@@ -179,7 +180,7 @@ func rpcClientConnectLoop(legacyRPCServer *legacyrpc.Server, loader *wallet.Load
 				log.Errorf("Couldn't create Neutrino ChainService: %s", err)
 				continue
 			}
-			chainClient = chain.NewNeutrinoClient(activeNet.Params, chainService)
+			chainClient = mychain.NewNeutrinoClient(activeNet.Params, chainService)
 			err = chainClient.Start()
 			if err != nil {
 				log.Errorf("Couldn't start Neutrino client: %s", err)

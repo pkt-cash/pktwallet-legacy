@@ -2202,9 +2202,9 @@ func (w *Wallet) GetTransactions(startBlock, endBlock *BlockIdentifier, cancel <
 				return nil, errors.New("no chain server client")
 			}
 			switch client := chainClient.(type) {
-			case *chain.RPCClient:
+			case *mychain.RPCClient:
 				startResp = client.GetBlockVerboseTxAsync(startBlock.hash)
-			case *chain.BitcoindClient:
+			case *mychain.BitcoindClient:
 				var err error
 				start, err = client.GetBlockHeight(startBlock.hash)
 				if err != nil {
