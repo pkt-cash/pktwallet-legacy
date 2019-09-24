@@ -3,7 +3,11 @@ package chain
 import (
 	"time"
 
-	libchain "github.com/pkt-cash/libpktwallet/chain"
+	"github.com/pkt-cash/btcutil"
+	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/pkt-cash/pktd/wire"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/wtxmgr"
 )
 
 // isCurrentDelta is the delta duration we'll use from the present time to
@@ -21,6 +25,7 @@ func BackEnds() []string {
 	}
 }
 
+/*
 type (
 	Interface              = libchain.Interface
 	ClientConnected        = libchain.ClientConnected
@@ -33,8 +38,7 @@ type (
 	RescanProgress         = libchain.RescanProgress
 	RescanFinished         = libchain.RescanFinished
 )
-
-/*
+*/
 
 // Interface allows more than one backing blockchain source, such as a
 // pktd RPC chain server, or an SPV library, as long as we write a driver for
@@ -133,4 +137,3 @@ type (
 		Time   time.Time
 	}
 )
-*/

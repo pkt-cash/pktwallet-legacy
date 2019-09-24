@@ -7,7 +7,6 @@ package waddrmgr
 import (
 	"time"
 
-	libwaddrmgr "github.com/pkt-cash/libpktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktwallet/walletdb"
 )
@@ -15,7 +14,11 @@ import (
 // BlockStamp defines a block (by height and a unique hash) and is used to mark
 // a point in the blockchain that an address manager element is
 // synced to.
-type BlockStamp = libwaddrmgr.BlockStamp
+type BlockStamp struct {
+	Height    int32
+	Hash      chainhash.Hash
+	Timestamp time.Time
+}
 
 // syncState houses the sync state of the manager.  It consists of the recently
 // seen blocks as height, as well as the start and current sync block stamps.

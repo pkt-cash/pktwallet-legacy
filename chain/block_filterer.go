@@ -1,8 +1,11 @@
 package chain
 
 import (
-	libchain "github.com/pkt-cash/libpktwallet/chain"
+	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/pkt-cash/pktd/txscript"
+	"github.com/pkt-cash/pktd/wire"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
 )
 
 // BlockFilterer is used to iteratively scan blocks for a set of addresses of
@@ -24,14 +27,6 @@ import (
 // address of interest by not storing the full derivation paths, and instead
 // opting to allow the caller to contextually infer the account (DefaultAccount)
 // and branch (Internal or External).
-type BlockFilterer = libchain.BlockFilterer
-
-func NewBlockFilterer(params *chaincfg.Params,
-	req *FilterBlocksRequest) *BlockFilterer {
-	return libchain.NewBlockFilterer(params, req)
-}
-
-/*
 type BlockFilterer struct {
 	// Params specifies the chain params of the current network.
 	Params *chaincfg.Params
@@ -220,4 +215,3 @@ func (bf *BlockFilterer) foundInternal(scopedIndex waddrmgr.ScopedIndex) {
 	}
 	bf.FoundInternal[scopedIndex.Scope][scopedIndex.Index] = struct{}{}
 }
-*/

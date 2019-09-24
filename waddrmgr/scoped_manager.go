@@ -7,17 +7,10 @@ import (
 
 	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/btcutil/hdkeychain"
-	libwaddrmgr "github.com/pkt-cash/libpktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/btcec"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktwallet/internal/zero"
 	"github.com/pkt-cash/pktwallet/walletdb"
-)
-
-type (
-	//	DerivationPath libwaddrmgr.DerivationPath
-	KeyScope    = libwaddrmgr.KeyScope
-	ScopedIndex = libwaddrmgr.ScopedIndex
 )
 
 // DerivationPath represents a derivation path from a particular key manager's
@@ -45,7 +38,6 @@ type DerivationPath struct {
 	Index uint32
 }
 
-/*
 // KeyScope represents a restricted key scope from the primary root key within
 // the HD chain. From the root manager (m/) we can create a nearly arbitrary
 // number of ScopedKeyManagers of key derivation path: m/purpose'/cointype'.
@@ -78,7 +70,7 @@ type ScopedIndex struct {
 func (k *KeyScope) String() string {
 	return fmt.Sprintf("m/%v'/%v'", k.Purpose, k.Coin)
 }
-*/
+
 // ScopeAddrSchema is the address schema of a particular KeyScope. This will be
 // persisted within the database, and will be consulted when deriving any keys
 // for a particular scope to know how to encode the public keys as addresses.

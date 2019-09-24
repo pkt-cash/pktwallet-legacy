@@ -15,16 +15,8 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/pktwallet/walletdb"
-	libwtxmgr "github.com/pkt-cash/libpktwallet/wtxmgr"
 )
 
-type (
-	Block     = libwtxmgr.Block
-	BlockMeta = libwtxmgr.BlockMeta
-	TxRecord  = libwtxmgr.TxRecord
-)
-
-/*
 // Block contains the minimum amount of data to uniquely identify any block on
 // either the best or side chain.
 type Block struct {
@@ -39,7 +31,7 @@ type BlockMeta struct {
 	Block
 	Time time.Time
 }
-*/
+
 // blockRecord is an in-memory representation of the block record saved in the
 // database.
 type blockRecord struct {
@@ -82,7 +74,6 @@ type credit struct {
 	spentBy  indexedIncidence // Index == ^uint32(0) if unspent
 }
 
-/*
 // TxRecord represents a transaction managed by the Store.
 type TxRecord struct {
 	MsgTx        wire.MsgTx
@@ -90,7 +81,7 @@ type TxRecord struct {
 	Received     time.Time
 	SerializedTx []byte // Optional: may be nil
 }
-*/
+
 // NewTxRecord creates a new transaction record that may be inserted into the
 // store.  It uses memoization to save the transaction hash and the serialized
 // transaction.
