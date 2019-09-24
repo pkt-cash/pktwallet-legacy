@@ -7,8 +7,8 @@ package wallet
 
 import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/libpktwallet/walletdb"
-	"github.com/pkt-cash/libpktwallet/wtxmgr"
+	"github.com/pkt-cash/pktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/wtxmgr"
 )
 
 type unstableAPI struct {

@@ -14,9 +14,9 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/btcutil/hdkeychain"
-	"github.com/pkt-cash/libpktwallet/util/zero"
-	"github.com/pkt-cash/libpktwallet/snacl"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/internal/zero"
+	"github.com/pkt-cash/pktwallet/snacl"
+	"github.com/pkt-cash/pktwallet/walletdb"
 )
 
 const (

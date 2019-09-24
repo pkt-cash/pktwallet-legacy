@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/chain"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
-	"github.com/pkt-cash/libpktwallet/wtxmgr"
+	"github.com/pkt-cash/pktwallet/chain"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/wtxmgr"
 	"github.com/pkt-cash/pktd/btcec"
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/chaincfg"

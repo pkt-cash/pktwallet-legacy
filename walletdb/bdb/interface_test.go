@@ -16,7 +16,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pkt-cash/libpktwallet/walletdb/walletdbtest"
+	"github.com/pkt-cash/pktwallet/walletdb/walletdbtest"
 )
 
 // TestInterface performs all interfaces tests for this database driver.

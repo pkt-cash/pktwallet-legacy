@@ -18,11 +18,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/btcutil/hdkeychain"
-	"github.com/pkt-cash/libpktwallet/chain"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
-	"github.com/pkt-cash/libpktwallet/walletdb"
-	"github.com/pkt-cash/libpktwallet/walletdb/migration"
-	"github.com/pkt-cash/libpktwallet/wtxmgr"
 	"github.com/pkt-cash/pktd/blockchain"
 	"github.com/pkt-cash/pktd/btcec"
 	"github.com/pkt-cash/pktd/btcjson"
@@ -31,9 +26,13 @@ import (
 	"github.com/pkt-cash/pktd/rpcclient"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
-	mychain "github.com/pkt-cash/pktwallet/chain"
+	"github.com/pkt-cash/pktwallet/chain"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktwallet/wallet/txauthor"
 	"github.com/pkt-cash/pktwallet/wallet/txrules"
+	"github.com/pkt-cash/pktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/walletdb/migration"
+	"github.com/pkt-cash/pktwallet/wtxmgr"
 )
 
 const (
@@ -177,7 +176,7 @@ func (w *Wallet) SynchronizeRPC(chainClient chain.Interface) {
 	// If the chain client is a NeutrinoClient instance, set a birthday so
 	// we don't download all the filters as we go.
 	switch cc := chainClient.(type) {
-	case *mychain.NeutrinoClient:
+	case *chain.NeutrinoClient:
 		cc.SetStartTime(w.Manager.Birthday())
 	case *chain.BitcoindClient:
 		cc.SetBirthday(w.Manager.Birthday())
@@ -2202,15 +2201,15 @@ func (w *Wallet) GetTransactions(startBlock, endBlock *BlockIdentifier, cancel <
 				return nil, errors.New("no chain server client")
 			}
 			switch client := chainClient.(type) {
-			case *mychain.RPCClient:
+			case *chain.RPCClient:
 				startResp = client.GetBlockVerboseTxAsync(startBlock.hash)
-			case *mychain.BitcoindClient:
+			case *chain.BitcoindClient:
 				var err error
 				start, err = client.GetBlockHeight(startBlock.hash)
 				if err != nil {
 					return nil, err
 				}
-			case *mychain.NeutrinoClient:
+			case *chain.NeutrinoClient:
 				var err error
 				start, err = client.GetBlockHeight(startBlock.hash)
 				if err != nil {
@@ -2229,7 +2228,7 @@ func (w *Wallet) GetTransactions(startBlock, endBlock *BlockIdentifier, cancel <
 			switch client := chainClient.(type) {
 			case *chain.RPCClient:
 				endResp = client.GetBlockVerboseTxAsync(endBlock.hash)
-			case *mychain.NeutrinoClient:
+			case *chain.NeutrinoClient:
 				var err error
 				end, err = client.GetBlockHeight(endBlock.hash)
 				if err != nil {

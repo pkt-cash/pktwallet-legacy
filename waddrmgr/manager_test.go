@@ -17,8 +17,8 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/snacl"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/snacl"
+	"github.com/pkt-cash/pktwallet/walletdb"
 	"github.com/davecgh/go-spew/spew"
 )
 

@@ -14,8 +14,8 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/netparams"
-	"github.com/pkt-cash/libpktwallet/util/cfgutil"
+	"github.com/pkt-cash/pktwallet/netparams"
+	"github.com/pkt-cash/pktwallet/internal/cfgutil"
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/rpcclient"

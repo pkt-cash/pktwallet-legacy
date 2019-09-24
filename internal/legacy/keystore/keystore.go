@@ -25,7 +25,7 @@ import (
 	"golang.org/x/crypto/ripemd160"
 
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/util/legacy/rename"
+	"github.com/pkt-cash/pktwallet/internal/legacy/rename"
 	"github.com/pkt-cash/pktd/btcec"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"

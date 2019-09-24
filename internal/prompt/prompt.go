@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/pkt-cash/btcutil/hdkeychain"
-	"github.com/pkt-cash/libpktwallet/util/legacy/keystore"
+	"github.com/pkt-cash/pktwallet/internal/legacy/keystore"
 	"github.com/btcsuite/golangcrypto/ssh/terminal"
 )
 

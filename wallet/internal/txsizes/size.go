@@ -8,7 +8,7 @@ import (
 	"github.com/pkt-cash/pktd/blockchain"
 	"github.com/pkt-cash/pktd/wire"
 
-	h "github.com/pkt-cash/libpktwallet/util/helpers"
+	h "github.com/pkt-cash/pktwallet/internal/helpers"
 )
 
 // Worst case script and input/output size estimates.

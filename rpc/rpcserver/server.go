@@ -8,11 +8,11 @@
 // Full documentation of the API implemented by this package is maintained in a
 // language-agnostic document:
 //
-//   https://github.com/pkt-cash/libpktwallet/blob/master/rpc/documentation/api.md
+//   https://github.com/pkt-cash/pktwallet/blob/master/rpc/documentation/api.md
 //
 // Any API changes must be performed according to the steps listed here:
 //
-//   https://github.com/pkt-cash/libpktwallet/blob/master/rpc/documentation/serverchanges.md
+//   https://github.com/pkt-cash/pktwallet/blob/master/rpc/documentation/serverchanges.md
 package rpcserver
 
 import (
@@ -31,14 +31,14 @@ import (
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/btcutil/hdkeychain"
-	"github.com/pkt-cash/libpktwallet/chain"
-	"github.com/pkt-cash/libpktwallet/util/cfgutil"
-	"github.com/pkt-cash/libpktwallet/util/zero"
-	"github.com/pkt-cash/libpktwallet/netparams"
-	pb "github.com/pkt-cash/libpktwallet/rpc/walletrpc"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/chain"
+	"github.com/pkt-cash/pktwallet/internal/cfgutil"
+	"github.com/pkt-cash/pktwallet/internal/zero"
+	"github.com/pkt-cash/pktwallet/netparams"
+	pb "github.com/pkt-cash/pktwallet/rpc/walletrpc"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktwallet/wallet"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/walletdb"
 )
 
 // Public API version constants

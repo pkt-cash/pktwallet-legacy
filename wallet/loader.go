@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/libpktwallet/util/prompt"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/internal/prompt"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/walletdb"
 )
 
 const (

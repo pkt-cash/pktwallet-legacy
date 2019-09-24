@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
 )
 
 // TestErrorCodeStringer tests the stringized output for the ErrorCode type.

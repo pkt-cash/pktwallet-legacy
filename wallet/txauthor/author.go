@@ -16,7 +16,7 @@ import (
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/pktwallet/wallet/txrules"
 
-	h "github.com/pkt-cash/libpktwallet/util/helpers"
+	h "github.com/pkt-cash/pktwallet/internal/helpers"
 	"github.com/pkt-cash/pktwallet/wallet/internal/txsizes"
 )
 

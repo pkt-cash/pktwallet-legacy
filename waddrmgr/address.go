@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/btcutil/hdkeychain"
-	"github.com/pkt-cash/libpktwallet/util/zero"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktd/btcec"
+	"github.com/pkt-cash/pktd/txscript"
+	"github.com/pkt-cash/pktwallet/internal/zero"
+	"github.com/pkt-cash/pktwallet/walletdb"
 )
 
 // AddressType represents the various address types waddrmgr is currently able
@@ -47,6 +47,9 @@ const (
 	// WitnessPubKey represents a p2wkh (pay-to-witness-key-hash) address
 	// type.
 	WitnessPubKey
+
+	// WitnessScript represents a p2wsh (pay-to-witness-script-hash) address.
+	WitnessScript
 )
 
 // ManagedAddress is an interface that provides acces to information regarding
@@ -213,6 +216,8 @@ func (a *managedAddress) AddrHash() []byte {
 		hash = n.Hash160()[:]
 	case *btcutil.AddressWitnessPubKeyHash:
 		hash = n.Hash160()[:]
+	case *btcutil.AddressWitnessScriptHash:
+		hash = n.ScriptAddress()
 	}
 
 	return hash
@@ -404,6 +409,14 @@ func newManagedAddressWithoutPrivKey(m *ScopedKeyManager,
 		if err != nil {
 			return nil, err
 		}
+
+	case WitnessScript:
+		address, err = btcutil.NewAddressWitnessScriptHash(
+			pubKeyHash, m.rootManager.chainParams,
+		)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &managedAddress{
@@ -498,13 +511,15 @@ func newManagedAddressFromExtKey(s *ScopedKeyManager,
 
 // scriptAddress represents a pay-to-script-hash address.
 type scriptAddress struct {
-	manager         *ScopedKeyManager
-	account         uint32
-	address         *btcutil.AddressScriptHash
-	scriptEncrypted []byte
-	scriptCT        []byte
-	scriptMutex     sync.Mutex
-	used            bool
+	addrType             AddressType
+	manager              *ScopedKeyManager
+	account              uint32
+	scriptAddress        *btcutil.AddressScriptHash
+	witnessScriptAddress *btcutil.AddressWitnessScriptHash
+	scriptEncrypted      []byte
+	scriptCT             []byte
+	scriptMutex          sync.Mutex
+	used                 bool
 }
 
 // Enforce scriptAddress satisfies the ManagedScriptAddress interface.
@@ -523,7 +538,7 @@ func (a *scriptAddress) unlock(key EncryptorDecryptor) ([]byte, error) {
 		script, err := key.Decrypt(a.scriptEncrypted)
 		if err != nil {
 			str := fmt.Sprintf("failed to decrypt script for %s",
-				a.address)
+				a.Address())
 			return nil, managerError(ErrCrypto, str, err)
 		}
 
@@ -557,7 +572,7 @@ func (a *scriptAddress) Account() uint32 {
 //
 // This is part of the ManagedAddress interface implementation.
 func (a *scriptAddress) AddrType() AddressType {
-	return Script
+	return a.addrType
 }
 
 // Address returns the btcutil.Address which represents the managed address.
@@ -565,14 +580,20 @@ func (a *scriptAddress) AddrType() AddressType {
 //
 // This is part of the ManagedAddress interface implementation.
 func (a *scriptAddress) Address() btcutil.Address {
-	return a.address
+	if a.addrType == Script {
+		return a.scriptAddress
+	}
+	return a.witnessScriptAddress
 }
 
 // AddrHash returns the script hash for the address.
 //
 // This is part of the ManagedAddress interface implementation.
 func (a *scriptAddress) AddrHash() []byte {
-	return a.address.Hash160()[:]
+	if a.addrType == Script {
+		return a.scriptAddress.Hash160()[:]
+	}
+	return a.witnessScriptAddress.ScriptAddress()
 }
 
 // Imported always returns true since script addresses are always imported
@@ -640,9 +661,27 @@ func newScriptAddress(m *ScopedKeyManager, account uint32, scriptHash,
 	}
 
 	return &scriptAddress{
+		addrType:        Script,
 		manager:         m,
 		account:         account,
-		address:         address,
+		scriptAddress:   address,
 		scriptEncrypted: scriptEncrypted,
+	}, nil
+}
+
+func newWitnessScriptAddress(m *ScopedKeyManager, account uint32,
+	scriptHash256, scriptEncrypted []byte) (*scriptAddress, error) {
+
+	address, err := btcutil.NewAddressWitnessScriptHash(scriptHash256, m.rootManager.chainParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return &scriptAddress{
+		addrType:             WitnessScript,
+		manager:              m,
+		account:              account,
+		witnessScriptAddress: address,
+		scriptEncrypted:      scriptEncrypted,
 	}, nil
 }

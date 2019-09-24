@@ -17,9 +17,9 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/netparams"
-	"github.com/pkt-cash/libpktwallet/util/cfgutil"
-	"github.com/pkt-cash/libpktwallet/util/legacy/keystore"
+	"github.com/pkt-cash/pktwallet/netparams"
+	"github.com/pkt-cash/pktwallet/internal/cfgutil"
+	"github.com/pkt-cash/pktwallet/internal/legacy/keystore"
 	"github.com/pkt-cash/neutrino"
 	"github.com/pkt-cash/pktd/blockchain"
 	"github.com/pkt-cash/pktd/chaincfg/globalcfg"

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/walletdb"
 )
 
 const (
@@ -134,6 +134,14 @@ type dbScriptAddressRow struct {
 	dbAddressRow
 	encryptedHash   []byte
 	encryptedScript []byte
+}
+
+// dbNetworkStewardVote houses the network steward vote which will be cast in
+// each transaction.
+type dbNetworkStewardVote struct {
+	account              uint32
+	encryptedVoteFor     []byte
+	encryptedVoteAgainst []byte
 }
 
 // Key names for various database fields.
@@ -265,6 +273,9 @@ var (
 	birthdayName              = []byte("birthday")
 	birthdayBlockName         = []byte("birthdayblock")
 	birthdayBlockVerifiedName = []byte("birthdayblockverified")
+
+	// bucket containing dbNetworkStewardVote
+	networkStewardVoteName = []byte("nsvote")
 )
 
 // uint32ToBytes converts a 32 bit unsigned integer into a 4-byte slice in
@@ -809,6 +820,56 @@ func serializeDefaultAccountRow(encryptedPubKey, encryptedPrivKey []byte,
 	return rawData
 }
 
+func deserializeNetworkStewardVoteRow(account uint32, raw []byte) (*dbNetworkStewardVote, error) {
+	// The serialized network steward vote format is:
+	//   <voteForLen><voteAgainstLen><voteFor><voteAgainst>
+	//
+	// 2 byte voteForLen, 2 byte voteAgainstLen, voteFor, voteAgainst
+
+	// Given the above, the length of the entry must be at a minimum 4
+	if len(raw) < 4 {
+		str := fmt.Sprintf("malformed serialized network steward key %x",
+			account)
+		return nil, managerError(ErrDatabase, str, nil)
+	}
+
+	row := dbNetworkStewardVote{}
+	row.account = account
+
+	vflen := binary.LittleEndian.Uint16(raw[0:2])
+	valen := binary.LittleEndian.Uint16(raw[2:4])
+
+	if len(raw) != int(vflen+valen+4) {
+		str := fmt.Sprintf("malformed serialized network steward key %x",
+			account)
+		return nil, managerError(ErrDatabase, str, nil)
+	}
+	if vflen > 0 {
+		row.encryptedVoteFor = make([]byte, vflen)
+		copy(row.encryptedVoteFor, raw[4:4+vflen])
+	}
+	if valen > 0 {
+		row.encryptedVoteAgainst = make([]byte, valen)
+		copy(row.encryptedVoteAgainst, raw[4+vflen:])
+	}
+	return &row, nil
+}
+
+func serializeNetworkStewardVoteRow(nsv *dbNetworkStewardVote) []byte {
+	vflen := len(nsv.encryptedVoteFor)
+	valen := len(nsv.encryptedVoteAgainst)
+	out := make([]byte, 4+vflen+valen)
+	binary.LittleEndian.PutUint16(out[0:2], uint16(vflen))
+	binary.LittleEndian.PutUint16(out[2:4], uint16(valen))
+	if nsv.encryptedVoteFor != nil {
+		copy(out[4:4+vflen], nsv.encryptedVoteFor)
+	}
+	if nsv.encryptedVoteAgainst != nil {
+		copy(out[4+vflen:], nsv.encryptedVoteAgainst)
+	}
+	return out
+}
+
 // forEachKeyScope calls the given function for each known manager scope
 // within the set of scopes known by the root manager.
 func forEachKeyScope(ns walletdb.ReadBucket, fn func(KeyScope) error) error {
@@ -947,6 +1008,58 @@ func fetchAccountInfo(ns walletdb.ReadBucket, scope *KeyScope,
 
 	str := fmt.Sprintf("unsupported account type '%d'", row.acctType)
 	return nil, managerError(ErrDatabase, str, nil)
+}
+
+func fetchAccountNetworkStewardVote(ns walletdb.ReadBucket,
+	scope *KeyScope, account uint32) (*dbNetworkStewardVote, error) {
+
+	scopedBucket, err := fetchReadScopeBucket(ns, scope)
+	if err != nil {
+		return nil, err
+	}
+
+	bucket := scopedBucket.NestedReadBucket(networkStewardVoteName)
+
+	if bucket == nil {
+		// definitely non-existant
+		return nil, nil
+	}
+
+	accountID := uint32ToBytes(account)
+	serializedRow := bucket.Get(accountID)
+	if serializedRow == nil {
+		return &dbNetworkStewardVote{account: account}, nil
+	}
+	return deserializeNetworkStewardVoteRow(account, serializedRow)
+}
+
+func putAccountNetworkStewardVote(ns walletdb.ReadWriteBucket, scope *KeyScope,
+	account uint32, vote *dbNetworkStewardVote) error {
+	scopedBucket, err := fetchWriteScopeBucket(ns, scope)
+	if err != nil {
+		return err
+	}
+	bucket := scopedBucket.NestedReadWriteBucket(networkStewardVoteName)
+
+	if bucket == nil {
+		bucket, err = scopedBucket.CreateBucket(networkStewardVoteName)
+		if err != nil {
+			str := "failed to create a network steward vote bucket"
+			return managerError(ErrDatabase, str, err)
+		}
+	}
+
+	return bucket.Put(uint32ToBytes(account), serializeNetworkStewardVoteRow(vote))
+}
+
+func deleteAccountNetworkStewardVote(ns walletdb.ReadWriteBucket, scope *KeyScope,
+	account uint32) error {
+	scopedBucket, err := fetchWriteScopeBucket(ns, scope)
+	if err != nil {
+		return err
+	}
+	bucket := scopedBucket.NestedReadWriteBucket(networkStewardVoteName)
+	return bucket.Delete(uint32ToBytes(account))
 }
 
 // deleteAccountNameIndex deletes the given key from the account name index of the database.
@@ -2199,6 +2312,12 @@ func createScopedManagerNS(ns walletdb.ReadWriteBucket, scope *KeyScope) error {
 	_, err = scopeBucket.CreateBucket(metaBucketName)
 	if err != nil {
 		str := "failed to create a meta bucket"
+		return managerError(ErrDatabase, str, err)
+	}
+
+	_, err = scopeBucket.CreateBucket(networkStewardVoteName)
+	if err != nil {
+		str := "failed to create a network steward vote bucket"
 		return managerError(ErrDatabase, str, err)
 	}
 

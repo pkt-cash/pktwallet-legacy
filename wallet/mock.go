@@ -6,8 +6,8 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/chain"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/chain"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
 )
 
 type mockChainClient struct {

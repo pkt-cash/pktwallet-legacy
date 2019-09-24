@@ -32,12 +32,8 @@ imports() {
     ( $FIND ./ -name '*.go' && echo './go.mod' ) | while read x; do
         echo $SED -i -e \'s@"github.com/btcsuite/btcd@"github.com/pkt-cash/pktd@g\' $x;
         echo $SED -i -e \'s@"github.com/btcsuite/btcutil@"github.com/pkt-cash/btcutil@g\' $x;
-        echo $SED -i -e \'s@"github.com/btcsuite/btcwallet@"github.com/pkt-cash/libpktwallet@g\' $x;
+        echo $SED -i -e \'s@"github.com/btcsuite/btcwallet@"github.com/pkt-cash/pktwallet@g\' $x;
         echo $SED -i -e \'s@"github.com/lightninglabs/neutrino@"github.com/pkt-cash/neutrino@g\' $x;
-
-        echo $SED -i -e \'s@"github.com/pkt-cash/libpktwallet/wallet@"github.com/pkt-cash/pktwallet/wallet@g\' $x;
-        echo $SED -i -e \'s@"github.com/pkt-cash/pktwallet/walletdb@"github.com/pkt-cash/libpktwallet/walletdb@g\' $x;
-        echo $SED -i -e \'s@"github.com/pkt-cash/libpktwallet/internal@"github.com/pkt-cash/libpktwallet/util@g\' $x;
     done | $RUN
 }
 rimports() {

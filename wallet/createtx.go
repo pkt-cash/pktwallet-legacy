@@ -13,10 +13,10 @@ import (
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktwallet/wallet/txauthor"
-	"github.com/pkt-cash/libpktwallet/walletdb"
-	"github.com/pkt-cash/libpktwallet/wtxmgr"
+	"github.com/pkt-cash/pktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/wtxmgr"
 )
 
 // byAmount defines the methods needed to satisify sort.Interface to

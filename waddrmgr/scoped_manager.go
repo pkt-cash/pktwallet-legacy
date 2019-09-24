@@ -1,15 +1,23 @@
 package waddrmgr
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"sync"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/btcutil/hdkeychain"
-	"github.com/pkt-cash/libpktwallet/util/zero"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	libwaddrmgr "github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/pktd/btcec"
+	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/pkt-cash/pktwallet/internal/zero"
+	"github.com/pkt-cash/pktwallet/walletdb"
+)
+
+type (
+	//	DerivationPath libwaddrmgr.DerivationPath
+	KeyScope    = libwaddrmgr.KeyScope
+	ScopedIndex = libwaddrmgr.ScopedIndex
 )
 
 // DerivationPath represents a derivation path from a particular key manager's
@@ -37,6 +45,7 @@ type DerivationPath struct {
 	Index uint32
 }
 
+/*
 // KeyScope represents a restricted key scope from the primary root key within
 // the HD chain. From the root manager (m/) we can create a nearly arbitrary
 // number of ScopedKeyManagers of key derivation path: m/purpose'/cointype'.
@@ -69,7 +78,7 @@ type ScopedIndex struct {
 func (k *KeyScope) String() string {
 	return fmt.Sprintf("m/%v'/%v'", k.Purpose, k.Coin)
 }
-
+*/
 // ScopeAddrSchema is the address schema of a particular KeyScope. This will be
 // persisted within the database, and will be consulted when deriving any keys
 // for a particular scope to know how to encode the public keys as addresses.
@@ -80,6 +89,12 @@ type ScopeAddrSchema struct {
 	// InternalAddrType is the address type for all keys within branch 1
 	// (change addresses).
 	InternalAddrType AddressType
+}
+
+// NetworkStewardVote is the network steward which an account will be voting for
+type NetworkStewardVote struct {
+	VoteFor     []byte
+	VoteAgainst []byte
 }
 
 var (
@@ -161,6 +176,10 @@ type ScopedKeyManager struct {
 	// acctInfo houses information about accounts including what is needed
 	// to generate deterministic chained keys for each created account.
 	acctInfo map[uint32]*accountInfo
+
+	// networkStewardVote is a cached unencrypted version of the network
+	// steward vote in the database.
+	networkStewardVote map[uint32]*NetworkStewardVote
 
 	// deriveOnUnlock is a list of private keys which needs to be derived
 	// on the next unlock.  This occurs when a public address is derived
@@ -400,6 +419,109 @@ func (s *ScopedKeyManager) loadAccountInfo(ns walletdb.ReadBucket,
 	return acctInfo, nil
 }
 
+// loadNetworkStewardVote attempts to load and cache the network steward
+// vore for the given account.
+//
+// This function MUST be called with the manager lock held for writes.
+func (s *ScopedKeyManager) loadNetworkStewardVote(ns walletdb.ReadBucket,
+	account uint32) (*NetworkStewardVote, error) {
+
+	if nsv, ok := s.networkStewardVote[account]; ok {
+		return nsv, nil
+	}
+
+	row, err := fetchAccountNetworkStewardVote(ns, &s.scope, account)
+	if err != nil {
+		return nil, maybeConvertDbError(err)
+	}
+
+	if row == nil {
+		delete(s.networkStewardVote, account)
+		return nil, nil
+	}
+
+	var voteFor, voteAgainst []byte
+	if row.encryptedVoteFor != nil {
+		voteFor, err = s.rootManager.cryptoKeyPub.Decrypt(row.encryptedVoteFor)
+		if err != nil {
+			str := fmt.Sprintf("failed to decrypt network steward voteFor for account %d",
+				account)
+			return nil, managerError(ErrCrypto, str, err)
+		}
+	}
+	if row.encryptedVoteAgainst != nil {
+		voteAgainst, err = s.rootManager.cryptoKeyPub.Decrypt(row.encryptedVoteAgainst)
+		if err != nil {
+			str := fmt.Sprintf("failed to decrypt network steward voteAgainst for account %d",
+				account)
+			return nil, managerError(ErrCrypto, str, err)
+		}
+	}
+
+	out := &NetworkStewardVote{
+		VoteFor:     voteFor,
+		VoteAgainst: voteAgainst,
+	}
+	s.networkStewardVote[account] = out
+	return out, nil
+}
+
+// putNetworkStewardVote sets the network steward vote for an account,
+// if vote is nil then it is deleted.
+//
+// NOTE: This function MUST be called with the manager lock held for writes.
+func (s *ScopedKeyManager) putNetworkStewardVote(ns walletdb.ReadWriteBucket,
+	account uint32, vote *NetworkStewardVote) error {
+
+	if vote == nil {
+		return deleteAccountNetworkStewardVote(ns, &s.scope, account)
+	}
+
+	nsv := dbNetworkStewardVote{}
+
+	var err error
+	if vote.VoteFor != nil {
+		nsv.encryptedVoteFor, err = s.rootManager.cryptoKeyPub.Encrypt(vote.VoteFor)
+		if err != nil {
+			return err
+		}
+	}
+	if vote.VoteAgainst != nil {
+		nsv.encryptedVoteAgainst, err = s.rootManager.cryptoKeyPub.Encrypt(vote.VoteAgainst)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = putAccountNetworkStewardVote(ns, &s.scope, account, &nsv); err != nil {
+		return err
+	}
+
+	// Let the value be loaded back up from the db once
+	delete(s.networkStewardVote, account)
+	return nil
+}
+
+// NetworkStewardVote returns the network steward which this account will be voting for.
+func (s *ScopedKeyManager) NetworkStewardVote(ns walletdb.ReadBucket,
+	account uint32) (*NetworkStewardVote, error) {
+
+	defer s.mtx.RUnlock()
+	s.mtx.RLock()
+
+	return s.loadNetworkStewardVote(ns, account)
+}
+
+// PutNetworkStewardVote updates the network steward which this account will be voting for.
+func (s *ScopedKeyManager) PutNetworkStewardVote(ns walletdb.ReadWriteBucket,
+	account uint32, vote *NetworkStewardVote) error {
+
+	defer s.mtx.RUnlock()
+	s.mtx.RLock()
+
+	return s.putNetworkStewardVote(ns, account, vote)
+}
+
 // AccountProperties returns properties associated with the account, such as
 // the account number, name, and the number of derived and imported keys.
 func (s *ScopedKeyManager) AccountProperties(ns walletdb.ReadBucket,
@@ -549,6 +671,10 @@ func (s *ScopedKeyManager) scriptAddressRowToManaged(row *dbScriptAddressRow) (M
 	if err != nil {
 		str := "failed to decrypt imported script hash"
 		return nil, managerError(ErrCrypto, str, err)
+	}
+
+	if len(scriptHash) == 32 {
+		return newWitnessScriptAddress(s, row.account, scriptHash, row.encryptedScript)
 	}
 
 	return newScriptAddress(s, row.account, scriptHash, row.encryptedScript)
@@ -1524,6 +1650,105 @@ func (s *ScopedKeyManager) ImportPrivateKey(ns walletdb.ReadWriteBucket,
 	// return it.
 	s.addrs[addrKey(managedAddr.Address().ScriptAddress())] = managedAddr
 	return managedAddr, nil
+}
+
+func (s *ScopedKeyManager) ImportWitnessScript(ns walletdb.ReadWriteBucket,
+	script []byte, bs *BlockStamp) (ManagedScriptAddress, error) {
+
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	// The manager must be unlocked to encrypt the imported script.
+	if s.rootManager.IsLocked() && !s.rootManager.WatchOnly() {
+		return nil, managerError(ErrLocked, errLocked, nil)
+	}
+
+	// Prevent duplicates.
+	scriptHash0 := sha256.Sum256(script)
+	scriptHash256 := scriptHash0[:]
+	alreadyExists := s.existsAddress(ns, scriptHash256)
+	if alreadyExists {
+		str := fmt.Sprintf("address for script hash %x already exists",
+			scriptHash256)
+		return nil, managerError(ErrDuplicateAddress, str, nil)
+	}
+
+	// Encrypt the script hash using the crypto public key so it is
+	// accessible when the address manager is locked or watching-only.
+	encryptedHash, err := s.rootManager.cryptoKeyPub.Encrypt(scriptHash256)
+	if err != nil {
+		str := fmt.Sprintf("failed to encrypt script hash %x",
+			scriptHash256)
+		return nil, managerError(ErrCrypto, str, err)
+	}
+
+	// Encrypt the script for storage in database using the crypto script
+	// key when not a watching-only address manager.
+	var encryptedScript []byte
+	if !s.rootManager.WatchOnly() {
+		encryptedScript, err = s.rootManager.cryptoKeyScript.Encrypt(
+			script,
+		)
+		if err != nil {
+			str := fmt.Sprintf("failed to encrypt script for %x",
+				scriptHash256)
+			return nil, managerError(ErrCrypto, str, err)
+		}
+	}
+
+	// The start block needs to be updated when the newly imported address
+	// is before the current one.
+	updateStartBlock := false
+	s.rootManager.mtx.Lock()
+	if bs.Height < s.rootManager.syncState.startBlock.Height {
+		updateStartBlock = true
+	}
+	s.rootManager.mtx.Unlock()
+
+	// Save the new imported address to the db and update start block (if
+	// needed) in a single transaction.
+	err = putScriptAddress(
+		ns, &s.scope, scriptHash256, ImportedAddrAccount, ssNone,
+		encryptedHash, encryptedScript,
+	)
+	if err != nil {
+		return nil, maybeConvertDbError(err)
+	}
+
+	if updateStartBlock {
+		err := putStartBlock(ns, bs)
+		if err != nil {
+			return nil, maybeConvertDbError(err)
+		}
+	}
+
+	// Now that the database has been updated, update the start block in
+	// memory too if needed.
+	if updateStartBlock {
+		s.rootManager.mtx.Lock()
+		s.rootManager.syncState.startBlock = *bs
+		s.rootManager.mtx.Unlock()
+	}
+
+	// Create a new managed address based on the imported script.  Also,
+	// when not a watching-only address manager, make a copy of the script
+	// since it will be cleared on lock and the script the caller passed
+	// should not be cleared out from under the caller.
+	scriptAddr, err := newWitnessScriptAddress(s, ImportedAddrAccount,
+		scriptHash256, encryptedScript)
+
+	if err != nil {
+		return nil, err
+	}
+	if !s.rootManager.WatchOnly() {
+		scriptAddr.scriptCT = make([]byte, len(script))
+		copy(scriptAddr.scriptCT, script)
+	}
+
+	// Add the new managed address to the cache of recent addresses and
+	// return it.
+	s.addrs[addrKey(scriptHash256)] = scriptAddr
+	return scriptAddr, nil
 }
 
 // ImportScript imports a user-provided script into the address manager.  The

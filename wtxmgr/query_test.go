@@ -15,7 +15,7 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/walletdb"
 )
 
 type queryState struct {

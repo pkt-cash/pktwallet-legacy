@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
-	"github.com/pkt-cash/libpktwallet/walletdb"
-	_ "github.com/pkt-cash/libpktwallet/walletdb/bdb"
-	"github.com/pkt-cash/libpktwallet/wtxmgr"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/walletdb"
+	_ "github.com/pkt-cash/pktwallet/walletdb/bdb"
+	"github.com/pkt-cash/pktwallet/wtxmgr"
 	"github.com/jessevdk/go-flags"
 )
 

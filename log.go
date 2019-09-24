@@ -12,11 +12,11 @@ import (
 
 	"github.com/pkt-cash/pktd/rpcclient"
 	"github.com/btcsuite/btclog"
-	"github.com/pkt-cash/libpktwallet/chain"
-	"github.com/pkt-cash/libpktwallet/rpc/legacyrpc"
-	"github.com/pkt-cash/libpktwallet/rpc/rpcserver"
+	"github.com/pkt-cash/pktwallet/chain"
+	"github.com/pkt-cash/pktwallet/rpc/legacyrpc"
+	"github.com/pkt-cash/pktwallet/rpc/rpcserver"
 	"github.com/pkt-cash/pktwallet/wallet"
-	"github.com/pkt-cash/libpktwallet/wtxmgr"
+	"github.com/pkt-cash/pktwallet/wtxmgr"
 	"github.com/jrick/logrotate/rotator"
 	"github.com/pkt-cash/neutrino"
 )

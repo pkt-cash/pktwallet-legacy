@@ -14,10 +14,9 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	libwalletdb "github.com/pkt-cash/libpktwallet/walletdb"
 	"github.com/pkt-cash/neutrino"
-	mychain "github.com/pkt-cash/pktwallet/chain"
-	"github.com/pkt-cash/libpktwallet/chain"
+	"github.com/pkt-cash/pktwallet/chain"
 	"github.com/pkt-cash/pktwallet/rpc/legacyrpc"
 	"github.com/pkt-cash/pktwallet/wallet"
 )
@@ -158,10 +157,10 @@ func rpcClientConnectLoop(legacyRPCServer *legacyrpc.Server, loader *wallet.Load
 		if cfg.UseSPV {
 			var (
 				chainService *neutrino.ChainService
-				spvdb        walletdb.DB
+				spvdb        libwalletdb.DB
 			)
 			netDir := networkDir(cfg.AppDataDir.Value, activeNet.Params)
-			spvdb, err = walletdb.Create("bdb",
+			spvdb, err = libwalletdb.Create("bdb",
 				filepath.Join(netDir, "neutrino.db"))
 			defer spvdb.Close()
 			if err != nil {
@@ -180,7 +179,7 @@ func rpcClientConnectLoop(legacyRPCServer *legacyrpc.Server, loader *wallet.Load
 				log.Errorf("Couldn't create Neutrino ChainService: %s", err)
 				continue
 			}
-			chainClient = mychain.NewNeutrinoClient(activeNet.Params, chainService)
+			chainClient = chain.NewNeutrinoClient(activeNet.Params, chainService)
 			err = chainClient.Start()
 			if err != nil {
 				log.Errorf("Couldn't start Neutrino client: %s", err)

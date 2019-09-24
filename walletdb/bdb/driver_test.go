@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pkt-cash/libpktwallet/walletdb"
-	_ "github.com/pkt-cash/libpktwallet/walletdb/bdb"
+	"github.com/pkt-cash/pktwallet/walletdb"
+	_ "github.com/pkt-cash/pktwallet/walletdb/bdb"
 )
 
 // dbType is the database type name for this driver.

@@ -7,7 +7,7 @@ package bdb
 import (
 	"fmt"
 
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/walletdb"
 )
 
 const (

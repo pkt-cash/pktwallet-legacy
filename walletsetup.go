@@ -15,12 +15,12 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/util/legacy/keystore"
-	"github.com/pkt-cash/libpktwallet/util/prompt"
-	"github.com/pkt-cash/libpktwallet/waddrmgr"
+	"github.com/pkt-cash/pktwallet/internal/legacy/keystore"
+	"github.com/pkt-cash/pktwallet/internal/prompt"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktwallet/wallet"
-	"github.com/pkt-cash/libpktwallet/walletdb"
-	_ "github.com/pkt-cash/libpktwallet/walletdb/bdb"
+	"github.com/pkt-cash/pktwallet/walletdb"
+	_ "github.com/pkt-cash/pktwallet/walletdb/bdb"
 )
 
 // networkDir returns the directory name of a network directory to hold wallet

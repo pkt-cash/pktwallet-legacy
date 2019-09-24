@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/libpktwallet/walletdb"
+	"github.com/pkt-cash/pktwallet/walletdb"
 )
 
 // TestStoreMaxReorgDepth ensures that we can only store up to MaxReorgDepth

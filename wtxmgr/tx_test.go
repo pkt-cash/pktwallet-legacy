@@ -17,8 +17,8 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/libpktwallet/walletdb"
-	_ "github.com/pkt-cash/libpktwallet/walletdb/bdb"
+	"github.com/pkt-cash/pktwallet/walletdb"
+	_ "github.com/pkt-cash/pktwallet/walletdb/bdb"
 )
 
 // Received transaction output for mainnet outpoint
