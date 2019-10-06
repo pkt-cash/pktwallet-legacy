@@ -832,6 +832,12 @@ expandHorizons:
 	// map for all internal and external branches.
 	filterReq := newFilterBlocksRequest(batch, scopedMgrs, recoveryState)
 
+	w.Manager.ForEachAccountAddress(ns, waddrmgr.ImportedAddrAccount,
+		func(maddr waddrmgr.ManagedAddress) error {
+			filterReq.ImportedAddrs = append(filterReq.ImportedAddrs, maddr.Address())
+			return nil
+		})
+
 	// Initiate the filter blocks request using our chain backend. If an
 	// error occurs, we are unable to proceed with the recovery.
 	filterResp, err := chainClient.FilterBlocks(filterReq)
@@ -1001,6 +1007,7 @@ func newFilterBlocksRequest(batch []wtxmgr.BlockMeta,
 		Blocks:           batch,
 		ExternalAddrs:    make(map[waddrmgr.ScopedIndex]btcutil.Address),
 		InternalAddrs:    make(map[waddrmgr.ScopedIndex]btcutil.Address),
+		ImportedAddrs:    make([]btcutil.Address, 0),
 		WatchedOutPoints: recoveryState.WatchedOutPoints(),
 	}
 

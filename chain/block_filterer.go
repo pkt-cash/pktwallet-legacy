@@ -39,6 +39,8 @@ type BlockFilterer struct {
 	// the scoped index from which it was derived.
 	InReverseFilter map[string]waddrmgr.ScopedIndex
 
+	ImportedReverseFilter map[string]struct{}
+
 	// WathcedOutPoints is a global set of outpoints being tracked by the
 	// wallet. This allows the block filterer to check for spends from an
 	// outpoint we own.
@@ -85,18 +87,25 @@ func NewBlockFilterer(params *chaincfg.Params,
 		inReverseFilter[addr.EncodeAddress()] = scopedIndex
 	}
 
+	nImpAddrs := len(req.ImportedAddrs)
+	impReverseFilter := make(map[string]struct{}, nImpAddrs)
+	for _, addr := range req.ImportedAddrs {
+		impReverseFilter[addr.EncodeAddress()] = struct{}{}
+	}
+
 	foundExternal := make(map[waddrmgr.KeyScope]map[uint32]struct{})
 	foundInternal := make(map[waddrmgr.KeyScope]map[uint32]struct{})
 	foundOutPoints := make(map[wire.OutPoint]btcutil.Address)
 
 	return &BlockFilterer{
-		Params:           params,
-		ExReverseFilter:  exReverseFilter,
-		InReverseFilter:  inReverseFilter,
-		WatchedOutPoints: req.WatchedOutPoints,
-		FoundExternal:    foundExternal,
-		FoundInternal:    foundInternal,
-		FoundOutPoints:   foundOutPoints,
+		Params:                params,
+		ExReverseFilter:       exReverseFilter,
+		InReverseFilter:       inReverseFilter,
+		ImportedReverseFilter: impReverseFilter,
+		WatchedOutPoints:      req.WatchedOutPoints,
+		FoundExternal:         foundExternal,
+		FoundInternal:         foundInternal,
+		FoundOutPoints:        foundOutPoints,
 	}
 }
 
@@ -189,6 +198,9 @@ func (bf *BlockFilterer) FilterOutputAddrs(addrs []btcutil.Address) bool {
 		}
 		if scopedIndex, ok := bf.InReverseFilter[addrStr]; ok {
 			bf.foundInternal(scopedIndex)
+			isRelevant = true
+		}
+		if _, ok := bf.ImportedReverseFilter[addrStr]; ok {
 			isRelevant = true
 		}
 	}

@@ -91,6 +91,7 @@ type (
 		Blocks           []wtxmgr.BlockMeta
 		ExternalAddrs    map[waddrmgr.ScopedIndex]btcutil.Address
 		InternalAddrs    map[waddrmgr.ScopedIndex]btcutil.Address
+		ImportedAddrs    []btcutil.Address
 		WatchedOutPoints map[wire.OutPoint]btcutil.Address
 	}
 

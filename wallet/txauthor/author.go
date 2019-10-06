@@ -229,10 +229,10 @@ func NewUnsignedTransaction(outputs []*wire.TxOut, relayFeePerKb btcutil.Amount,
 			if err != nil {
 				return nil, err
 			}
-			if len(changeScript) > txsizes.P2WPKHPkScriptSize {
-				return nil, errors.New("fee estimation requires change " +
-					"scripts no larger than P2WPKH output scripts")
-			}
+			// if len(changeScript) > txsizes.P2WPKHPkScriptSize {
+			// 	return nil, errors.New("fee estimation requires change " +
+			// 		"scripts no larger than P2WPKH output scripts")
+			// }
 			change := wire.NewTxOut(int64(changeAmount), changeScript)
 			l := len(outputs)
 			unsignedTransaction.TxOut = append(outputs[:l:l], change)
