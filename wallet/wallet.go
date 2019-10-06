@@ -3561,6 +3561,25 @@ func Create(db walletdb.DB, pubPass, privPass, seed []byte, params *chaincfg.Par
 	})
 }
 
+// ResyncChain re-synchronizes the wallet from the very first block
+func (w *Wallet) ResyncChain() error {
+	chainClient, err := w.requireChainClient()
+	if err != nil {
+		return err
+	}
+	genesis := waddrmgr.BlockStamp{
+		Hash:   *w.ChainParams().GenesisHash,
+		Height: 0,
+	}
+	if err := walletdb.Update(w.db, func(tx walletdb.ReadWriteTx) error {
+		ns := tx.ReadWriteBucket(waddrmgrNamespaceKey)
+		return w.Manager.SetSyncedTo(ns, &genesis)
+	}); err != nil {
+		return err
+	}
+	return w.recovery(chainClient, &genesis)
+}
+
 // Open loads an already-created wallet from the passed database and namespaces.
 func Open(db walletdb.DB, pubPass []byte, cbs *waddrmgr.OpenCallbacks,
 	params *chaincfg.Params, recoveryWindow uint32) (*Wallet, error) {

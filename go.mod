@@ -4,7 +4,6 @@ go 1.12
 
 require (
 	github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f
-	github.com/btcsuite/btcwallet v0.0.0-20190911065739-d5cdeb4b91b0 // indirect
 	github.com/btcsuite/golangcrypto v0.0.0-20150304025918-53f62d9b43e8
 	github.com/btcsuite/websocket v0.0.0-20150119174127-31079b680792
 	github.com/coreos/bbolt v1.3.3
@@ -16,12 +15,8 @@ require (
 	github.com/pkt-cash/btcutil v0.0.0-20190820145949-0b35535b1374
 	github.com/pkt-cash/libpktwallet v0.0.0-20190923150213-473a38ba85d7
 	github.com/pkt-cash/neutrino v0.0.0-20190816213044-d61790b8b163
-	github.com/pkt-cash/pktd v0.0.0-20190911171729-8e7f99d667d4
-	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
-	golang.org/x/net v0.0.0-20190923162816-aa69164e4478
-	google.golang.org/grpc v1.23.1
+	github.com/pkt-cash/pktd v0.0.0-20191006143416-217381a7d144
+	golang.org/x/crypto v0.0.0-20191002192127-34f69633bfdc
+	golang.org/x/net v0.0.0-20191003171128-d98b1b443823
+	google.golang.org/grpc v1.24.0
 )
-
-replace github.com/pkt-cash/libpktwallet => ../libpktwallet
-
-replace github.com/pkt-cash/neutrino => ../neutrino

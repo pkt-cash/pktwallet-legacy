@@ -16,9 +16,6 @@ import (
 	"time"
 
 	"github.com/pkt-cash/btcutil"
-	"github.com/pkt-cash/pktwallet/chain"
-	"github.com/pkt-cash/pktwallet/waddrmgr"
-	"github.com/pkt-cash/pktwallet/wtxmgr"
 	"github.com/pkt-cash/pktd/btcec"
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/chaincfg"
@@ -26,8 +23,11 @@ import (
 	"github.com/pkt-cash/pktd/rpcclient"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
+	"github.com/pkt-cash/pktwallet/chain"
+	"github.com/pkt-cash/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktwallet/wallet"
 	"github.com/pkt-cash/pktwallet/wallet/txrules"
+	"github.com/pkt-cash/pktwallet/wtxmgr"
 )
 
 // confirmed checks whether a transaction at height txHeight has met minconf
@@ -131,6 +131,7 @@ var rpcHandlers = map[string]struct {
 	"getnetworkstewardvote": {handler: getNetworkStewardVote},
 	"addp2shscript":         {handler: addP2shScript},
 	"createtransaction":     {handlerWithChain: createTransaction},
+	"resync":                {handlerWithChain: resync},
 	// This was an extension but the reference implementation added it as
 	// well, but with a different API (no account parameter).  It's listed
 	// here because it hasn't been update to use the reference
@@ -1610,6 +1611,11 @@ func createTransaction(icmd interface{}, w *wallet.Wallet, chainClient *chain.RP
 	b := bytes.NewBuffer(make([]byte, 0, tx.Tx.SerializeSize()))
 	tx.Tx.Serialize(b)
 	return hex.EncodeToString(b.Bytes()), nil
+}
+
+func resync(icmd interface{}, w *wallet.Wallet, chainClient *chain.RPCClient) (interface{}, error) {
+	w.ResyncChain()
+	return nil, nil
 }
 
 // sendMany handles a sendmany RPC request by creating a new transaction

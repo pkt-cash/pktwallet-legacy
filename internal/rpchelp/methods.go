@@ -26,6 +26,7 @@ var Methods = []struct {
 	{"addmultisigaddress", returnsString},
 	{"createmultisig", []interface{}{(*btcjson.CreateMultiSigResult)(nil)}},
 	{"createtransaction", returnsString},
+	{"resync", nil},
 	{"dumpprivkey", returnsString},
 	{"getaccount", returnsString},
 	{"getaccountaddress", returnsString},
