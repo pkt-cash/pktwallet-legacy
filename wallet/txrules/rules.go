@@ -9,9 +9,9 @@ package txrules
 import (
 	"errors"
 
+	"github.com/pkt-cash/btcutil"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/btcutil"
 )
 
 // DefaultRelayFeePerKb is the default minimum relay fee policy for a mempool.
@@ -72,9 +72,9 @@ func CheckOutput(output *wire.TxOut, relayFeePerKb btcutil.Amount) error {
 	if output.Value < 0 {
 		return ErrAmountNegative
 	}
-	if output.Value > btcutil.MaxSatoshi {
-		return ErrAmountExceedsMax
-	}
+	// if output.Value > btcutil.MaxSatoshi {
+	// 	return ErrAmountExceedsMax
+	// }
 	if IsDustOutput(output, relayFeePerKb) {
 		return ErrOutputIsDust
 	}
