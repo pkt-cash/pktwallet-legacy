@@ -5,6 +5,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -53,6 +54,14 @@ func walletMain() error {
 			logRotator.Close()
 		}
 	}()
+
+	if !tcfg.RunDeprecated {
+		log.Critical("This version of pktwallet is nolonger supported, please switch to " +
+			"the new version by typing `go get github.com/pkt-cash/pktd/pktwallet`\n" +
+			"if you wish to run the deprecated version anyway, specify the flag --rundeprecated")
+		return fmt.Errorf("Shutting down because this version is deprecated, " +
+			"use --rundeprecated to override")
+	}
 
 	// Show version at startup.
 	log.Infof("Version %s", version())
